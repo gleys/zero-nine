@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments.html :: head"></head>
+<body class="bg-light">
+<nav th:replace="fragments.html :: main-nav"></nav>
+<div class="container">
+  <div class="row mt-5 justify-content-center">
+    <div class="col-2">
+      <div th:replace="fragments.html :: settings-menu(currentMenu='notifications')"></div>
+    </div>
+    <div class="col-8">
+      <div th:if="${message}" class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+        <span th:text="${message}">완료</span>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="row">
+        <h2 class="col-12">알림 설정</h2>
+      </div>
+      <div class="row mt-3" th:fragment="profile-form">
+        <form class="col-12" action="#" th:action="@{/settings/notifications}" th:object="${notificationsForm}" method="post" novalidate>
+          <div class="alert alert-light" role="alert">
+             <strong> <a href="#" th:href="@{/settings/keywords}">관심있는 상품</a>의 공구가 만들어졌을 때</strong> 알림을 받을 방법을 설정하세요.
+          </div>
+          <div class="form-group">
+            <div class="custom-control custom-switch custom-control-inline">
+              <input type="checkbox" th:field="*{orderCreatedByEmail}" class="custom-control-input" id="orderCreatedByEmail">
+              <label class="custom-control-label" for="orderCreatedByEmail">이메일로 받기</label>
+            </div>
+            <div class="custom-control custom-switch custom-control-inline">
+              <input type="checkbox" th:field="*{orderCreatedByWeb}" class="custom-control-input" id="orderCreatedByWeb">
+              <label class="custom-control-label" for="orderCreatedByWeb">웹으로 받기</label>
+            </div>
+          </div>
+          <div class="alert alert-light" role="alert">
+            <strong>공구 참가 신청</strong> 결과 알림을 받을 방법을 설정하세요.
+          </div>
+          <div class="form-group">
+            <div class="custom-control custom-switch custom-control-inline">
+              <input type="checkbox" th:field="*{orderEnrollmentResultByEmail}" class="custom-control-input" id="orderEnrollmentResultByEmail">
+              <label class="custom-control-label" for="orderEnrollmentResultByEmail">이메일로 받기</label>
+            </div>
+            <div class="custom-control custom-switch custom-control-inline">
+              <input type="checkbox" th:field="*{orderEnrollmentResultByWeb}" class="custom-control-input" id="orderEnrollmentResultByWeb">
+              <label class="custom-control-label" for="orderEnrollmentResultByWeb">웹으로 받기</label>
+            </div>
+          </div>
+          <div class="alert alert-light" role="alert">
+            <strong>참여중인 공구</strong>에 대한 알림을 받을 방법을 설정하세요.
+          </div>
+          <div class="form-group">
+            <div class="custom-control custom-switch custom-control-inline">
+              <input type="checkbox" th:field="*{orderUpdatedByEmail}" class="custom-control-input" id="orderUpdatedByEmail">
+              <label class="custom-control-label" for="orderUpdatedByEmail">이메일로 받기</label>
+            </div>
+            <div class="custom-control custom-switch custom-control-inline">
+              <input type="checkbox" th:field="*{orderUpdatedByWeb}" class="custom-control-input" id="orderUpdatedByWeb">
+              <label class="custom-control-label" for="orderUpdatedByWeb">웹으로 받기</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <button class="btn btn-outline-primary" type="submit" aria-describedby="submitHelp">저장하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div th:replace="fragments.html :: footer"></div>
+</div>
+</body>
+</html>

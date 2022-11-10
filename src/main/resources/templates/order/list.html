@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments.html :: head">
+
+</head>
+<body class="bg-light">
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="container">
+    <div class="row mt-5 justify-content-center">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">생성일</th>
+                <th scope="col">제목</th>
+                <th scope="col">상품정보</th>
+                <th scope="col">상품명</th>
+                <th scope="col">권한</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr onmouseenter="changeColor(this)" th:each="order : ${orderList}"
+                    th:onclick="|location.href='@{/order/{id}(id=${order.id})}'|">
+                    <th th:text="${order.createdAt}" th:value="${order.createdAt}"/>
+                    <th th:text="${order.title}" th:value="${order.id}"/>
+                    <th th:text="${order.description}" th:value="${order.description}"/>
+                    <th th:text="${order.item.name}" th:value="${order.item.id}"/>
+                    <th th:text="${order.isOwner(#authentication.principal)}"
+                        th:value="${order.isOwner(#authentication.principal)}"/>
+                </tr>
+            </tbody>
+        </table>
+
+<!--        <div><span>생성일</span></div>-->
+<!--        <div><span>상품정포</span></div>-->
+<!--        <div><span>진행상태</span></div>-->
+<!--        <div><span>권한</span></div>-->
+<!--        <div th:each="order : ${partyList}">-->
+<!--            <div>-->
+<!--                <span th:text="${order.title}" th:value="${order.id}"/>-->
+<!--                <span th:text="${order.description}" th:value="${order.description}"/>-->
+<!--                <span th:text="${order.item.name}" th:value="${order.item.id}"/>-->
+<!--            </div>-->
+<!--        </div>-->
+
+    </div>
+</div>
+
+<script>
+    function changeColor(e) {
+        $(e).mouseover(function(){
+            $(this).addClass('table-primary');
+            console.log(this);
+        }).mouseout(function(){
+            $(this).removeClass('table-primary');
+        });
+    }
+</script>
+
+</body>
+</html>

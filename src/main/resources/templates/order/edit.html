@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments.html :: head">
+    <link rel="stylesheet" href="/node_modules/summernote/dist/summernote-bs4.min.css"/>
+    <head/>
+
+<body class="bg-light">
+<div th:replace="fragments.html :: main-nav"/>
+<div class="container">
+    <div th:replace="fragments.html :: order-form(mode='edit', action='/order/setting/'+${orderId})" />
+</div>
+
+<div th:replace="fragments.html :: footer"/>
+</div>
+
+<script th:replace="fragments.html :: form-validation"></script>
+<script src="/node_modules/summernote/dist/summernote-bs4.js"></script>
+<script th:replace="fragments.html :: editor-script"></script>
+
+</body>
+</html>

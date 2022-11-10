@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>제로나인</title>
+    <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/node_modules/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/node_modules/@yaireo/tagify/dist/tagify.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400&display=swap" rel="stylesheet">
+
+    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/node_modules/jdenticon/dist/jdenticon.min.js"></script>
+
+    <style>
+        .container {
+            max-width: 100%;
+        }
+        .wrapper{
+            width:300px;
+            margin:auto;
+        }
+        .txtContact{
+            width:fit-content;
+            margin:auto;
+        }
+        .btnSubmit{
+            width:100px;
+            margin:auto;
+            display:block;
+        }
+        .tags-outside{
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+        .line{
+            float: left;
+        }
+    </style>
+</head>
+
+<script type="application/javascript" th:fragment="image-edit">
+    $(function() {
+        cropper = '';
+        let $confirmBtn = $("#confirm-button");
+        let $resetBtn = $("#reset-button");
+        let $cutBtn = $("#cut-button");
+        let $newProfileImage = $("#new-profile-image");
+        let $currentProfileImage = $("#current-profile-image");
+        let $resultImage = $("#cropped-new-profile-image");
+        let $profileImage = $("#profileImage");
+
+        $newProfileImage.hide();
+        $cutBtn.hide();
+        $resetBtn.hide();
+        $confirmBtn.hide();
+
+        $("#profile-image-file").change(function(e) {
+            if (e.target.files.length === 1) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    if (e.target.result) {
+                        if (!e.target.result.startsWith("data:image")) {
+                            alert("이미지 파일을 선택하세요.");
+                            return;
+                        }
+
+                        let img = document.createElement("img");
+                        img.id = 'new-profile';
+                        img.src = e.target.result;
+                        img.setAttribute('width', '100%');
+
+                        $newProfileImage.html(img);
+                        $newProfileImage.show();
+                        $currentProfileImage.hide();
+
+                        let $newImage = $(img);
+                        $newImage.cropper({aspectRatio: 1});
+                        cropper = $newImage.data('cropper');
+
+                        $cutBtn.show();
+                        $confirmBtn.hide();
+                        $resetBtn.show();
+                    }
+                };
+
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        $resetBtn.click(function() {
+            $currentProfileImage.show();
+            $newProfileImage.hide();
+            $resultImage.hide();
+            $resetBtn.hide();
+            $cutBtn.hide();
+            $confirmBtn.hide();
+            $profileImage.val('');
+        });
+
+        $cutBtn.click(function () {
+            let dataUrl = cropper.getCroppedCanvas().toDataURL();
+
+            if (dataUrl.length > 1000 * 1024) {
+                alert("이미지 파일이 너무 큽니다. 1024000 보다 작은 파일을 사용하세요. 현재 이미지 사이즈 " + dataUrl.length);
+                return;
+            }
+
+            let newImage = document.createElement("img");
+            newImage.id = "cropped-new-profile-image";
+            newImage.src = dataUrl;
+            newImage.width = 125;
+            $resultImage.html(newImage);
+            $resultImage.show();
+            $confirmBtn.show();
+
+            $confirmBtn.click(function () {
+                $newProfileImage.html(newImage);
+                $cutBtn.hide();
+                $confirmBtn.hide();
+                $profileImage.val(dataUrl);
+            });
+        });
+    });
+</script>
+
+
+<nav th:fragment="main-nav" class="navbar navbar-expand-sm navbar-dark bg-dark">
+    <a class="navbar-brand" href="/" th:href="@{/}">
+        ZeroNine
+        <!--Todo : 이미지 태그 추가-->
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <form th:action="@{/search/order}" class="form-inline" method="get">
+                    <input class="form-control mr-sm-2" name="keyword" type="search" placeholder="공구 찾기" aria-label="Search" />
+                </form>
+            </li>
+        </ul>
+
+        <ul class="navbar-nav justify-content-end">
+            <li class="nav-item" sec:authorize="!isAuthenticated()">
+                <a class="nav-link" th:href="@{/login}">로그인</a>
+            </li>
+            <li class="nav-item" sec:authorize="!isAuthenticated()">
+                <a class="nav-link" th:href="@{/join}">가입</a>
+            </li>
+            <li class="nav-item" sec:authorize="isAuthenticated()">
+                <a class="nav-link" th:href="@{/notifications}">
+                    <i class="fa fa-bell-o" aria-hidden="true"></i>
+                </a>
+            </li>
+            <li class="nav-item" sec:authorize="isAuthenticated()">
+                <a class="nav-link btn btn-outline-primary" th:href="@{/new-order}">
+                    <i class="fa fa-plus" aria-hidden="true"></i>
+                    공구 만들기
+                </a>
+            </li>
+            <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown"
+                   aria-haspopup="true" aria-expanded="false">
+                    <svg th:if="${#strings.isEmpty(user?.profileImage)}" data-jdenticon-value="user127" th:data-jdenticon-value="${#authentication.name}"
+                         width="24" height="24" class="rounded border bg-light"/>
+                    <img th:if="${!#strings.isEmpty(user?.profileImage)}" th:src="${user.profileImage}"
+                         width="24" height="24" class="rounded border"/>
+                </a>
+                <div class="dropdown-menu dropdown-menu-sm-right" aria-labelledby="userDropdown">
+                    <h6 class="dropdown-header">
+                        <span sec:authentication="name">Username</span>
+                    </h6>
+                    <a class="dropdown-item" th:href="@{'/profile/' + ${#authentication.name}}">내 정보</a>
+                    <a class="dropdown-item" >공구</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" th:href="@{'/settings/profile'}">설정</a>
+                    <form class="form-inline my-2 my-lg-0" action="#" th:action="@{/logout}" method="post">
+                        <button class="dropdown-item" type="submit">로그아웃</button>
+                    </form>
+                </div>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+
+<footer th:fragment="footer">
+    <div class="row justify-content-center">
+        <!--Todo : 이미지 태그 추가-->
+    </div>
+</footer>
+
+<div th:fragment="settings-menu (currentMenu)" class="list-group">
+    <a class="list-group-item list-group-item-action" th:classappend="${currentMenu == 'profile'}? active" href="#" th:href="@{/settings/profile}">프로필</a>
+    <a class="list-group-item list-group-item-action" th:classappend="${currentMenu == 'password'}? active" href="#" th:href="@{/settings/password}">패스워드</a>
+    <a class="list-group-item list-group-item-action" th:classappend="${currentMenu == 'notifications'}? active" href="#" th:href="@{/settings/notifications}">알림</a>
+    <a class="list-group-item list-group-item-action" th:classappend="${currentMenu == 'keywords'}? active" href="#" th:href="@{/settings/keywords}">키워드 설정</a>
+    <a class="list-group-item list-group-item-action list-group-item-danger" th:classappend="${currentMenu == 'account'}? active" href="#" th:href="@{/settings/account}">계정</a>
+</div>
+
+<script type="application/javascript" th:fragment="form-validation">
+    (function () {
+        'use strict';
+        window.addEventListener('load', function () {
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            let forms = document.getElementsByClassName('needs-validation');
+
+            // Loop over them and prevent submission
+            Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        }, false)
+    }())
+</script>
+
+<div th:fragment="delete-user (baseUrl)">
+    <script type="application/javascript" th:inline="javascript">
+        $(function() {
+            function removeUser(url, name) {
+                $.ajax({
+                    dataType: "json",
+                    autocomplete: {
+                        enabled: true,
+                        rightKey: true,
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    method: "POST",
+                    url: "[(${baseUrl})]" + url,
+                    data: JSON.stringify({'user': name})
+                }).done(function (data, status) {
+                    console.log("${data} and status is ${status}");
+                });
+            }
+
+            function onRemove(e) {
+                removeUser("/" + e.detail.data.value, e.detail.data.value);
+            }
+
+            var input = document.querySelector("#user");
+            var tagify = new Tagify(input, {
+                pattern: /^.{0,20}$/,
+                whitelist: JSON.parse(document.querySelector("#whitelist").textContent),
+                dropdown : {
+                    enabled: 1, // suggest tags after a single character input
+                } // map tags
+            });
+
+            tagify.on("add", onAdd);
+            tagify.on("remove", onRemove);
+
+            // add a class to Tagify's input element
+            tagify.DOM.input.classList.add('form-control');
+
+            // re-place Tagify's input element outside of the  element (tagify.DOM.scope), just before it
+            tagify.DOM.scope.parentNode.insertBefore(tagify.DOM.input, tagify.DOM.scope);
+
+        }
+
+
+
+    )
+    </script>
+</div>
+
+<div th:fragment="update-tags (baseUrl)">
+    <script src="/node_modules/@yaireo/tagify/dist/tagify.min.js"></script>
+    <script type="application/javascript" th:inline="javascript">
+        $(function() {
+            function tagRequest(url, name) {
+                $.ajax({
+                    dataType: "json",
+                    autocomplete: {
+                        enabled: true,
+                        rightKey: true,
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    method: "POST",
+                    url: "[(${baseUrl})]" + url,
+                    data: JSON.stringify({'keyword': name})
+                }).done(function (data, status) {
+                    console.log("${data} and status is ${status}");
+                });
+            }
+
+            function onAdd(e) {
+                tagRequest("/add", e.detail.data.value);
+            }
+
+            function onRemove(e) {
+                tagRequest("/remove", e.detail.data.value);
+            }
+
+            var input = document.querySelector("#tags");
+            var tagify = new Tagify(input, {
+                pattern: /^.{0,20}$/,
+                whitelist: JSON.parse(document.querySelector("#whitelist").textContent),
+                dropdown : {
+                    enabled: 1, // suggest tags after a single character input
+                } // map tags
+            });
+
+            tagify.on("add", onAdd);
+            tagify.on("remove", onRemove);
+
+            // add a class to Tagify's input element
+            tagify.DOM.input.classList.add('form-control');
+
+            // re-place Tagify's input element outside of the  element (tagify.DOM.scope), just before it
+            tagify.DOM.scope.parentNode.insertBefore(tagify.DOM.input, tagify.DOM.scope);
+
+        });
+    </script>
+</div>
+
+
+<script type="application/javascript" th:inline="javascript" th:fragment="ajax-csrf-header">
+    $(function() {
+        var csrfToken = /*[[${_csrf.token}]]*/ null;
+        var csrfHeader = /*[[${_csrf.headerName}]]*/ null;
+        $(document).ajaxSend(function (e, xhr, options) {
+            xhr.setRequestHeader(csrfHeader, csrfToken);
+        });
+    });
+</script>
+
+<div th:fragment="editor-script">
+    <script src="/node_modules/summernote/dist/summernote-bs4.js"></script>
+    <script type="application/javascript">
+        $(function () {
+            $('.editor').summernote({
+                fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Noto Sans KR', 'Merriweather'],
+                tabsize: 2,
+                height: 300
+            });
+        });
+    </script>
+</div>
+
+<div th:fragment="order-info">
+    <div class="row pt-4 text-left justify-content-center bg-light">
+        <div class="col-6">
+            <a href="#" class="text-decoration-none" th:href="@{'/order/' + ${order.id}}">
+                <span class="h2" th:text="${order.title}">공구 이름</span>
+            </a>
+        </div>
+        <div class="col-4 text-right justify-content-end">
+            <span th:if="${order.closed}"
+                  class="d-inline-block" tabindex="0" data-toggle="tooltip" data-placement="bottom" title="종료">
+                    <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>종료</button>
+            </span>
+            <span th:if="${!order.closed}"
+              class="d-inline-block ml-1" tabindex="0" data-toggle="tooltip" data-placement="bottom" title="진행중">
+                <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>진행중</button>
+            </span>
+            <span sec:authorize="isAuthenticated()" th:if="${order.isAvailable() && order.isParticipant(#authentication.principal)}"
+                  class="btn-group" role="group" aria-label="Basic example">
+                    <a class="btn btn-primary" th:href="@{'/order/' + ${order.id} + '/join'}">
+                        참가
+                    </a>
+            </span>
+            <span sec:authorize="isAuthenticated()" th:if="${order.isOwner(#authentication.principal)}"
+                  class="btn-group" role="group" aria-label="Basic example">
+                    <a class="btn btn-warning" th:href="@{'/order/setting/' + ${order.id}}">
+                        수정
+                    </a>
+            </span>
+
+            <span sec:authorize="isAuthenticated()"
+                  th:if="${!order.closed && order.isParticipant(#authentication.principal)}" class="btn-group" role="group">
+                    <a class="btn btn-danger" th:href="@{'/order/' + ${order.id} + '/leave'}">
+                        취소
+                    </a>
+            </span>
+            <span>
+                    <a class="btn btn-outline-primary" th:href="@{'/orders/'}">
+                        <i class="fa fa-list"></i> 목록
+                    </a>
+            </span>
+        </div>
+    </div>
+
+    <div class="row justify-content-center bg-light">
+        <div class="col-10">
+            <p class="lead" th:text="${order.description}"></p>
+        </div>
+    </div>
+
+    <div th:fragment="order-form (mode, action)">
+        <div class="py-5 text-center">
+            <h2 th:if="${mode == 'edit'}">주문 수정</h2>
+            <h2 th:if="${mode == 'new'}">주문 생성</h2>
+        </div>
+        <div class="row justify-content-center">
+            <form class="needs-validation col-sm-10"
+                  th:action="@{${action}}"
+                  th:object="${orderForm}" method="post" novalidate>
+                <div class="form-group">
+                    <input id="title" type="text" th:field="*{title}" class="form-control"
+                           placeholder="제목" aria-describedby="titleHelp" required />
+                    <div>
+                        <div>
+                            <tr>
+                                <th scope="row">
+                                    <em>*</em>
+                                    쇼핑몰
+                                </th>
+                                <td>
+                                    <input id="url" type="text" name="extra_vars2" th:field="*{url}" value class="text">
+                                </td>
+                                <small class="form-text text-danger" th:if="${#fields.hasErrors('url')}" th:errors="*{url}">url Error</small>
+                            </tr>
+                        </div>
+
+                        <tr>
+                            <th scope="row">
+                                <em>*</em>
+                                분류
+                            </th>
+                            <select name="categoryId" class="form-select">
+                                <option>분류</option>
+                                <option th:each="category : *{categories}" th:text="${category.value}" th:value="${category.key}"/>
+                            </select>
+                            <th scope="row">
+                                <em>*</em>
+                                상품명
+                            </th>
+                            <td>
+                                <input type="text" id="name" name="extra_vars2" th:field="*{name}">
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <em>*</em>
+                                가격
+                            </th>
+                            <td>
+                                <input type="text" id="price" name="extra_vars2" th:field="*{price}" >
+                            </td>
+                        </tr>
+                    </div>
+
+                    <div>
+                        <tr>
+                            <th scope="row">
+                                <em>*</em>
+                                이미지
+                            </th>
+                            <td>
+<!--                                <svg th:if="*{#strings.isEmpty(itemImage)}" class="rounded" id="itemImage"-->
+<!--                                     th:data-jdenticon-value="*{title}" width="125" height="125" th:field="*{itemImage}"/>-->
+
+<!--                                <img th:if="${!#strings.isEmpty(itemImage)}" class="rounded"-->
+<!--                                     th:src="${itemImage}" th:field="*{itemImage}"-->
+<!--                                     width="125" height="125" alt="name" th:alt="${title}"/>-->
+
+                                <input type="text" id="itemImage" name="extra_vars2" th:field="*{itemImage}" >
+                            </td>
+                        </tr>
+                    </div>
+
+                    <div>
+                        <tr>
+                            <th scope="row">
+                                <em>*</em>
+                                내용
+                            </th>
+                            <small class="invalid-feedback">상세 소개를 입력하세요.</small>
+                            <small class="form-text text-danger" th:if="${#fields.hasErrors('description')}"
+                                    th:errors="*{description}">description Error</small>
+
+                            <input type="text" id="description" name="extra_vars2" th:field="*{description}" >
+                        </tr>
+                    </div>
+
+                    <div>
+                        <tr>
+                            <th scope="row">
+                                <em>*</em>
+                                참가 가능 인원 수
+                            </th>
+                            <small class="invalid-feedback">참가 가능 인원수를 입력하세요.</small>
+                            <input type="text" name="extra_vars2" th:field="*{numberOfLimit}" >
+                        </tr>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary btn-block" type="submit" aria-describedby="submitHelp">
+                        등록
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+<!--    <div class="row justify-content-center bg-light">-->
+<!--        <div class="col-10">-->
+<!--            <p>-->
+<!--                <span th:each="tag: ${study.tags}"-->
+<!--                      class="font-weight-light text-monospace badge badge-pill badge-info mr-3">-->
+<!--                    <a th:href="@{'/search/tag/' + ${tag.title}}" class="text-decoration-none text-white">-->
+<!--                        <i class="fa fa-tag"></i> <span th:text="${tag.title}">Tag</span>-->
+<!--                    </a>-->
+<!--                </span>-->
+<!--                <span th:each="zone: ${study.zones}" class="font-weight-light text-monospace badge badge-primary mr-3">-->
+<!--                    <a th:href="@{'/search/zone/' + ${zone.id}}" class="text-decoration-none text-white">-->
+<!--                        <i class="fa fa-globe"></i> <span th:text="${zone.localNameOfCity}">City</span>-->
+<!--                    </a>-->
+<!--                </span>-->
+<!--            </p>-->
+<!--        </div>-->
+<!--    </div>-->
+</div>
+
+
+
+</html>

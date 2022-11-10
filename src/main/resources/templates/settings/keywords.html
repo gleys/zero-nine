@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments.html :: head"></head>
+<body class="bg-light">
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="container">
+    <div class="row mt-5 justify-content-center">
+        <div class="col-2">
+            <div th:replace="fragments.html :: settings-menu(currentMenu='keywords')"></div>
+        </div>
+        <div class="col-8">
+            <div class="row">
+                <h2 class="col-12">키워드 알림 설정</h2>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-info" role="alert">
+                        키워드를 입력해주세요. (예: 아이패드)
+                    </div>
+                    <div id="whitelist" th:text="${whitelist}" hidden></div>
+                    <input id="tags" type="text" name='tags' class="tags-outside" th:value="${#strings.listJoin(keywords, ',')}"
+                           aria-describedby="tagHelp"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:replace="fragments.html :: ajax-csrf-header"></script>
+<script th:replace="fragments.html :: update-tags(baseUrl='/settings/keywords')"></script>
+
+</body>
+</html>

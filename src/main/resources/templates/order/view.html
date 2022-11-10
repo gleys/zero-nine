@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="fragments.html :: head"/>
+
+<body class="bg-light">
+  <div th:replace="fragments.html :: main-nav"/>
+    <div class="container">
+      <div class="row pt-4 text-left justify-content-center bg-light">
+        <div class="col-6">
+          <a href="#" class="text-decoration-none" th:href="@{'/order/' + ${order.id}}">
+            <span class="h2" th:text="${order.title}">공구 이름</span>
+          </a>
+        </div>
+        <div class="col-4 text-right justify-content-end">
+            <span th:if="${order.closed}"
+                  class="d-inline-block" tabindex="0" data-toggle="tooltip" data-placement="bottom" title="종료">
+                    <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>종료</button>
+            </span>
+          <span th:if="${!order.closed}"
+                class="d-inline-block ml-1" tabindex="0" data-toggle="tooltip" data-placement="bottom" title="진행중">
+                <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>진행중</button>
+            </span>
+          <span sec:authorize="isAuthenticated()" th:if="${order.isAvailable() && order.isParticipant(#authentication.principal)}"
+                class="btn-group" role="group" aria-label="Basic example">
+                    <a class="btn btn-primary" th:href="@{'/order/' + ${order.id} + '/join'}">
+                        참가
+                    </a>
+            </span>
+          <span sec:authorize="isAuthenticated()" th:if="${order.isOwner(#authentication.principal)}"
+                class="btn-group" role="group" aria-label="Basic example">
+                    <a class="btn btn-warning" th:href="@{'/order/setting/' + ${order.id}}">
+                        수정
+                    </a>
+            </span>
+
+          <span sec:authorize="isAuthenticated()"
+                th:if="${!order.closed && order.isParticipant(#authentication.principal)}" class="btn-group" role="group">
+                    <a class="btn btn-danger" th:href="@{'/order/' + ${order.id} + '/leave'}">
+                        취소
+                    </a>
+            </span>
+          <span>
+              <a class="btn btn-outline-primary" th:href="@{'/orders/'}">
+                  <i class="fa fa-list"></i> 목록
+              </a>
+          </span>
+        </div>
+    </div>
+</body>
+
+</html>

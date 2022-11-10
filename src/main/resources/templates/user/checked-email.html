@@ -1,0 +1,24 @@
+<!--이메일 인증 메일 다시 발송-->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments.html :: head"/>
+
+<body class="bg-light">
+<div th:replace="fragments.html :: main-nav"/>
+
+<div class="py-5 text-center" th:if="${error}">
+  <p class="lead">제로나인 이메일 확인</p>
+  <div class="alert alert-danger" role="alert">
+    유효하지 않은 이메일 확인 링크입니다.
+  </div>
+</div>
+
+<div class="py-5 text-center" th:if="${error == null}">
+  <p class="lead">제로나인 이메일 확인</p>
+  <h2>
+    가입을 축하합니다.
+  </h2>
+  <small class="text-info">이제부터 가입 시 사용한 이메일 또는 이름을 통하여 로그인 할 수 있습니다.</small>
+</div>
+</body>
+</html>
