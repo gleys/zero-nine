@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:text="http://www.w3.org/1999/xhtml">
 
 <head th:replace="fragments.html :: head"/>
 
@@ -35,7 +35,18 @@
                     </a>
             </span>
 
-          <span sec:authorize="isAuthenticated()"
+            <span sec:authorize="isAuthenticated()" th:if="${order.isOwner(#authentication.principal) && !order.closed}"
+                  class="btn-group" role="group" aria-label="Basic example">
+<!--                    <a id="deleteOrder" class="btn btn-danger"  th:href="@{'/order/setting/' + ${order.id} + '/remove'}">-->
+<!--                        삭제-->
+<!--                    </a>-->
+                <button class="btn btn-danger" onclick=deleteOrder(this) th:id="${order.id}" type="button">
+                    삭제
+                </button>
+            </span>
+
+
+            <span sec:authorize="isAuthenticated()"
                 th:if="${!order.closed && order.isParticipant(#authentication.principal)}" class="btn-group" role="group">
                     <a class="btn btn-danger" th:href="@{'/order/' + ${order.id} + '/leave'}">
                         취소
@@ -47,7 +58,130 @@
               </a>
           </span>
         </div>
+          <div class="col-6">
+              <span>작성자 : </span> <span class="h2" th:text="${order.owner.name}">작성자 </span>
+              <span>게시일 : </span> <span class="h2" th:text="${order.createdAt}">작성자 </span>
+              <span>현재 인원 수 : </span> <span class="h2" th:text="${order.getUsers().size() + 1}">작성자 </span>
+              <span>총 인원 수 : </span> <span class="h2" th:text="${order.numberOfLimit}">작성자 </span>
+          </div>
+          <div>
+              <span>이미지: </span> <span class="h2" th:text="${order.item.itemImage}"/>
+              <span>내용: </span> <span class="h2" th:text="${order.description}"/>
+          </div>
+          <div>
+              <div id="parentId" th:value="${parent.key}" th:each="parent: ${comments}">
+                  댓글
+                  <div th:each="child: ${parent.value}">
+                      <div id="childId" th:value="${child.key}" th:text="${child.value}"></div>
+                      <button th:id="${child.key}" onclick=deleteIdx(this) id="reply-btn-delete" type="button" class="btn btn-dark mt-2">삭제</button>
+                  <div/>
+
+
+              </div>
+          </div>
+
+              <div>
+                  <input type="hidden" id="orderId" th:value="${order.id}">
+                  <ul class="list-group list-group-flush">
+                      <li class="list-group-item">
+                          <textarea class="form-control" id="reply-content" rows="1"></textarea>
+                          <button id="reply-btn-save" type="button" class="btn btn-dark mt-3">등록</button>
+                      </li>
+                  </ul>
+              </div>
+      </div>
     </div>
+    </div>
+
+
 </body>
+
+<script th:replace="fragments.html :: ajax-csrf-header"></script>
+<script type="application/javascript" th:inline="javascript">
+    let deleteOrder = (e) => {
+        let orderId = e.id
+
+        $.ajax({
+            type: "DELETE",
+            url: `/order/setting/${orderId}`,
+            data: '',
+            autocomplete: {
+                enabled: true,
+                rightKey: true
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: "text"
+        }).done(function(res) {
+            console.log(res);
+            location.href="/orders"
+        }).fail(function (err) {
+            alert(JSON.stringify(err));
+        })
+    }
+</script>
+
+
+<script type="application/javascript" th:inline="javascript">
+    let deleteIdx = (e) => {
+
+        let targetId = e.id
+        let orderId = $('#orderId').val();
+
+        console.log(targetId);
+        console.log(orderId);
+
+        $.ajax({
+            type: "POST",
+            url: `/comment/${orderId}/delete/${targetId}`,
+            data: '',
+            autocomplete: {
+                enabled: true,
+                rightKey: true,
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: "text"
+        }).done(function(res) {
+            alert("댓글을 삭제 하였습니다.");
+            location.href = `/order/${orderId}`
+        }).fail(function (err) {
+            alert(JSON.stringify(err));
+        })
+    }
+</script>
+
+<script type="application/javascript" th:inline="javascript">
+    let replyIdx = {
+        init: function() {
+            $('#reply-btn-save').on('click', () => {
+                this.replySave();
+            });
+        },
+
+        replySave: function() {
+            let data = $('#reply-content').val()
+            let orderId = $('#orderId').val();
+
+            console.log(data);
+            console.log(orderId);
+            $.ajax({
+                type: "POST",
+                url: `/comment/${orderId}`,
+                data: JSON.stringify({text: data, parentId: 1}),
+                autocomplete: {
+                    enabled: true,
+                    rightKey: true,
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "text"
+            }).done(function(res) {
+                alert("댓글을 작성하였습니다.");
+                location.href = `/order/${orderId}`
+            }).fail(function (err) {
+                alert(JSON.stringify(err));
+            })
+        }
+    }
+    replyIdx.init();
+</script>
 
 </html>

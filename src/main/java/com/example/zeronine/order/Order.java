@@ -1,8 +1,10 @@
 package com.example.zeronine.order;
 
 import com.example.zeronine.item.Item;
+import com.example.zeronine.settings.Keyword;
 import com.example.zeronine.user.User;
 import com.example.zeronine.user.UserAccount;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,17 +13,19 @@ import lombok.extern.slf4j.Slf4j;
 import javax.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static javax.persistence.CascadeType.*;
 import static javax.persistence.FetchType.LAZY;
+import static lombok.AccessLevel.PROTECTED;
 
-@Slf4j
 @Getter
 @EqualsAndHashCode(of = "id")
 @Table(name = "orders")
-@NoArgsConstructor
+@NoArgsConstructor(access = PROTECTED)
 @Entity
 public class Order {
 
@@ -33,7 +37,6 @@ public class Order {
     private String title;
 
     @Lob @Basic(fetch = LAZY)
-    @Column(nullable = true)
     private String description;
 
     @ManyToOne(fetch = LAZY)
@@ -46,6 +49,9 @@ public class Order {
     @OneToOne(fetch = LAZY, cascade = ALL)
     @JoinColumn(name = "items_id", foreignKey = @ForeignKey(name = "fk_orders_to_items"))
     private Item item;
+
+    @ManyToMany(cascade = {MERGE, PERSIST})
+    private List<Keyword> keywords = new ArrayList<>();
 
     private boolean closed;
 
@@ -71,6 +77,10 @@ public class Order {
     public void participate(User user) {
         this.users.add(user);
         this.participantNum = users.size();
+    }
+
+    public void addKeywords(List<Keyword> keywords) {
+        this.keywords.addAll(keywords);
     }
 
     public void setClosed(boolean flag) {

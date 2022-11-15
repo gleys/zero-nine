@@ -1,5 +1,8 @@
 package com.example.zeronine.main;
 
+import com.example.zeronine.notification.NotificationRepository;
+import com.example.zeronine.order.Order;
+import com.example.zeronine.order.OrderRepository;
 import com.example.zeronine.user.CurrentUser;
 import com.example.zeronine.user.User;
 import com.example.zeronine.user.UserRepository;
@@ -7,6 +10,10 @@ import com.example.zeronine.user.UserService;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
@@ -28,12 +35,24 @@ public class MainController {
 
     private final UserService userService;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
+    private final NotificationRepository notificationRepository;
 
     @GetMapping("/")
-    public String home(@CurrentUser User user, Model model) {
+    public String home(@CurrentUser User user, Model model,
+                       @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC)
+                       Pageable pageable) {
+
         if (user != null) {
             model.addAttribute(user);
         }
+
+        long count = notificationRepository.countByUserAndChecked(user, false);
+        model.addAttribute("hasNotification", count > 0);
+
+        Page<Order> orderPage = orderRepository.findAll(pageable);
+        model.addAttribute("orderPage", orderPage);
+
         return "index";
     }
 

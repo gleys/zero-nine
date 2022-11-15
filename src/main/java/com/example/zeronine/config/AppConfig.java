@@ -1,11 +1,17 @@
 package com.example.zeronine.config;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import kr.co.shineware.nlp.komoran.constant.DEFAULT_MODEL;
+import kr.co.shineware.nlp.komoran.core.Komoran;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.NameTokenizers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import static org.modelmapper.config.Configuration.AccessLevel.*;
 
@@ -27,6 +33,14 @@ public class AppConfig {
                 .setSourceNameTokenizer(NameTokenizers.UNDERSCORE);
 
         return  modelMapper;
+    }
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Bean
+    public JPAQueryFactory jpaQueryFactory() {
+        return new JPAQueryFactory(entityManager);
     }
 
 }

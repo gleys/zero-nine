@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments.html :: head"></head>
+<body class="bg-light">
+<nav th:replace="fragments.html :: main-nav"></nav>
+<div class="container">
+  <div class="row py-5 text-center">
+
+    <div class="col-3">
+      <ul class="list-group">
+        <a th:href="@{/notifications}" th:classappend="${isNew}? active"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          읽지 않은 알림
+          <span th:text="${unCheckedCount}">3</span>
+        </a>
+        <a href="#" th:href="@{/notifications/old}" th:classappend="${!isNew}? active"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          읽은 알림
+          <span th:text="${checkedCount}">0</span>
+        </a>
+      </ul>
+
+      <ul class="list-group mt-4" th:if="${checkedCount > 0}">
+          <button onclick="deleteNotifications()" class="btn btn-block btn-outline-warning" aria-describedby="deleteHelp">
+            읽은 알림 삭제
+          </button>
+          <small id="deleteHelp">삭제하지 않아도 한달이 지난 알림은 사라집니다.</small>
+        </form>
+      </ul>
+
+    </div>
+
+    <div class="col-9">
+      <div class="card" th:if="${#lists.isEmpty(notifications)}">
+        <div class="card-header">
+          알림 메시지가 없습니다.
+        </div>
+      </div>
+
+      <div class="card" th:if="${!#lists.isEmpty(notifications)}">
+          <div class="card-header">
+            키워드 알림
+          </div>
+        <div th:replace="fragments.html :: notification-list (notifications=${notifications})"/>
+      </div>
+  </div>
+  <div th:replace="fragments.html :: footer"></div>
+  </div>
+</div>
+
+<script th:replace="fragments.html :: date-time"></script>
+<script th:replace="fragments.html :: ajax-csrf-header"></script>
+
+<script type="application/javascript" th:inline="javascript">
+  let deleteNotifications = (e) => {
+    $.ajax({
+      type: "DELETE",
+      url:  "/notifications",
+      data: '',
+      autocomplete: {
+        enabled: true,
+        rightKey: true
+      },
+      contentType: "application/json; charset=utf-8",
+      dataType: "text"
+    }).done(function(res) {
+      console.log(res);
+      location.href="/notifications"
+    }).fail(function (err) {
+      alert(JSON.stringify(err));
+    })
+  }
+</script>
+
+</body>
+</html>

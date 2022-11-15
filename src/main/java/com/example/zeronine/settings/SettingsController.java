@@ -21,6 +21,8 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.persistence.Access;
+import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -169,9 +171,10 @@ public class SettingsController {
      */
     @ResponseBody
     @PostMapping("/keywords/add")
-    public ResponseEntity addKeyword(@CurrentUser User user, @RequestBody @Validated KeywordsForm form, BindingResult bindingResult) {
+    public ResponseEntity addKeyword(@CurrentUser User user, @RequestBody @Valid KeywordsForm form, BindingResult bindingResult) {
+
         if (bindingResult.hasErrors()) {
-            ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().build();
         }
 
         userService.addKeyword(user, form.getKeyword());

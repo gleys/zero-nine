@@ -1,0 +1,27 @@
+spring:
+  spring:
+    config:
+      activate:
+        on-profile: test
+  h2:
+    console:
+      enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+#    database: db2
+#    generate-ddl: off
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;
+    username: SA
+    password:
+#    initialization-mode: always
+#    schema: src/test/resources/schema.sql
+
+

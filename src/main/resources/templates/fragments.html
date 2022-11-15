@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <title>제로나인</title>
     <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="/node_modules/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/node_modules/font-awesome/css/font-awesome.css">
     <link rel="stylesheet" href="/node_modules/@yaireo/tagify/dist/tagify.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,9 +41,13 @@
         .line{
             float: left;
         }
+        .fa,.fab,.fad,.fal,.far,.fas{
+            font-weight: 900 !important;
+        }
     </style>
 </head>
 
+<script th:replace="fragments.html :: ajax-csrf-header"></script>
 <script type="application/javascript" th:fragment="image-edit">
     $(function() {
         cropper = '';
@@ -152,14 +156,18 @@
             <li class="nav-item" sec:authorize="!isAuthenticated()">
                 <a class="nav-link" th:href="@{/login}">로그인</a>
             </li>
+
+            <li class="nav-item" sec:authorize="isAuthenticated()">
+                <a class="nav-link" th:href="@{/notifications}">
+                    <i th:if="${!hasNotification}" class="fa fa-bell" aria-hidden="true"></i>
+                    <span th:if="${hasNotification}" class="text-info"><i class="fa fa-bell" aria-hidden="true"></i></span>
+                </a>
+            </li>
+
             <li class="nav-item" sec:authorize="!isAuthenticated()">
                 <a class="nav-link" th:href="@{/join}">가입</a>
             </li>
-            <li class="nav-item" sec:authorize="isAuthenticated()">
-                <a class="nav-link" th:href="@{/notifications}">
-                    <i class="fa fa-bell-o" aria-hidden="true"></i>
-                </a>
-            </li>
+
             <li class="nav-item" sec:authorize="isAuthenticated()">
                 <a class="nav-link btn btn-outline-primary" th:href="@{/new-order}">
                     <i class="fa fa-plus" aria-hidden="true"></i>
@@ -205,6 +213,18 @@
     <a class="list-group-item list-group-item-action" th:classappend="${currentMenu == 'keywords'}? active" href="#" th:href="@{/settings/keywords}">키워드 설정</a>
     <a class="list-group-item list-group-item-action list-group-item-danger" th:classappend="${currentMenu == 'account'}? active" href="#" th:href="@{/settings/account}">계정</a>
 </div>
+
+<ul th:fragment="notification-list (notifications)" class="list-group list-group-flush">
+    <a href="#" th:href="@{${noti.link}}" th:each="noti: ${notifications}"
+       class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+            <small class="text-muted" th:text="${noti.title}">Noti title</small>
+            <small class="fromNow text-muted" th:text="${noti.createdAt}">3 days ago</small>
+        </div>
+        <p th:text="${noti.message}" class="text-left mb-0 mt-1">message</p>
+    </a>
+</ul>
+
 
 <script type="application/javascript" th:fragment="form-validation">
     (function () {
@@ -269,9 +289,6 @@
             tagify.DOM.scope.parentNode.insertBefore(tagify.DOM.input, tagify.DOM.scope);
 
         }
-
-
-
     )
     </script>
 </div>
@@ -326,6 +343,37 @@
     </script>
 </div>
 
+<div th:fragment="date-time">
+    <script src="/node_modules/moment/min/moment-with-locales.min.js"></script>
+    <script type="application/javascript">
+        $(function () {
+            moment.locale('ko');
+            $(".date-time").text(function(index, dateTime) {
+                return moment(dateTime, "YYYY-MM-DD`T`hh:mm").format('LLL');
+            });
+            $(".date").text(function(index, dateTime) {
+                return moment(dateTime, "YYYY-MM-DD`T`hh:mm").format('LL');
+            });
+            $(".weekday").text(function(index, dateTime) {
+                return moment(dateTime, "YYYY-MM-DD`T`hh:mm").format('dddd');
+            });
+            $(".time").text(function(index, dateTime) {
+                return moment(dateTime, "YYYY-MM-DD`T`hh:mm").format('LT');
+            });
+            $(".calendar").text(function(index, dateTime) {
+                return moment(dateTime, "YYYY-MM-DD`T`hh:mm").calendar();
+            });
+            $(".fromNow").text(function(index, dateTime) {
+                return moment(dateTime, "YYYY-MM-DD`T`hh:mm").fromNow();
+            });
+            $(".date-weekday-time").text(function(index, dateTime) {
+                return moment(dateTime, "YYYY-MM-DD`T`hh:mm").format('LLLL');
+            });
+        })
+    </script>
+</div>
+
+
 
 <script type="application/javascript" th:inline="javascript" th:fragment="ajax-csrf-header">
     $(function() {
@@ -350,6 +398,36 @@
     </script>
 </div>
 
+<div th:fragment="order-list (orderList)" class="col-sm-12">
+    <div class="row">
+        <div class="col-md-4" th:each="order : ${orderList}">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <a th:href="@{'/order/' + ${order.id}}" class="text-decoration-none">
+                        <h5 class="card-title context" th:text="${order.title}"></h5>
+                    </a>
+                    <p class="card-text" th:text="${order.description}">description</p>
+<!--                    <p class="card-text context">-->
+<!--                        <span th:each="keyword: ${order.keyword}" class="font-weight-light text-monospace badge badge-pill badge-info mr-3">-->
+<!--                            <a th:href="@{'/search/keyword/' + ${keyword.name}}" class="text-decoration-none text-white">-->
+<!--                                <i class="fa fa-tag"></i> <span th:text="${keyword.name}">keyword</span>-->
+<!--                            </a>-->
+<!--                        </span>-->
+<!--                    </p>-->
+<!--                    <div class="d-flex justify-content-between align-items-center">-->
+<!--                        <small class="text-muted">-->
+<!--                            <i class="fa fa-user-circle"></i>-->
+<!--                            <span th:text="${order.userCount}"></span>명-->
+<!--                        </small>-->
+<!--                        <small class="text-muted date" th:text="${order.createdAt}">9 mins</small>-->
+<!--                    </div>-->
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div th:fragment="order-info">
     <div class="row pt-4 text-left justify-content-center bg-light">
         <div class="col-6">
@@ -366,18 +444,28 @@
               class="d-inline-block ml-1" tabindex="0" data-toggle="tooltip" data-placement="bottom" title="진행중">
                 <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>진행중</button>
             </span>
-            <span sec:authorize="isAuthenticated()" th:if="${order.isAvailable() && order.isParticipant(#authentication.principal)}"
+
+            <span sec:authorize="isAuthenticated()" th:if="${order.isAvailable() && !order.isOwner(#authentication.principal)}"
                   class="btn-group" role="group" aria-label="Basic example">
                     <a class="btn btn-primary" th:href="@{'/order/' + ${order.id} + '/join'}">
                         참가
                     </a>
             </span>
+
             <span sec:authorize="isAuthenticated()" th:if="${order.isOwner(#authentication.principal)}"
                   class="btn-group" role="group" aria-label="Basic example">
                     <a class="btn btn-warning" th:href="@{'/order/setting/' + ${order.id}}">
                         수정
                     </a>
             </span>
+
+            <span sec:authorize="isAuthenticated()" th:if="${order.isOwner(#authentication.principal) && !order.closed}"
+                  class="btn-group" role="group" aria-label="Basic example">
+                    <a class="btn btn-warning" th:href="@{'/order/setting/' + ${order.id}}">
+                        삭제
+                    </a>
+            </span>
+
 
             <span sec:authorize="isAuthenticated()"
                   th:if="${!order.closed && order.isParticipant(#authentication.principal)}" class="btn-group" role="group">
@@ -476,14 +564,27 @@
                     <div>
                         <tr>
                             <th scope="row">
-                                <em>*</em>
                                 내용
                             </th>
                             <small class="invalid-feedback">상세 소개를 입력하세요.</small>
                             <small class="form-text text-danger" th:if="${#fields.hasErrors('description')}"
                                     th:errors="*{description}">description Error</small>
 
-                            <input type="text" id="description" name="extra_vars2" th:field="*{description}" >
+                            <input type="text" id="description" name="extra_vars2" th:field="*{description}">
+
+                        </tr>
+                    </div>
+
+                    <div>
+                        <tr>
+                            <th scope="row">
+                                <em>*</em>
+                                등록 키워드
+                            </th>
+                            <small class="form-text text-danger" th:if="${#fields.hasErrors('keywords')}"
+                                    th:errors="*{keywords}">keywordSentence Error</small>
+                            <input type="text" th:field="*{keywords}">
+
                         </tr>
                     </div>
 
