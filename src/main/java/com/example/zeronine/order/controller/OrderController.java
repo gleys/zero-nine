@@ -43,7 +43,7 @@ public class OrderController {
     private final OrderRepository orderRepository;
     private final OrderService orderService;
     private final OrderFormValidator orderFormValidator;
-    private final Tokenizer tokenizer;
+
 
     @InitBinder("orderForm")
     private void orderValid(WebDataBinder webDataBinder) {
@@ -80,6 +80,7 @@ public class OrderController {
 
             model.addAttribute(user);
             model.addAttribute(orderForm);
+
             return "order/form";
         }
 
@@ -119,9 +120,12 @@ public class OrderController {
         return "order/list";
     }
 
-    @PostMapping("/{id}/remove")
+    @PostMapping("order/{id}/leave")
     public ResponseEntity remove(@CurrentUser User user, @PathVariable Long id) {
+        log.info("leave order");
         boolean result = orderService.leave(user, id);
+        log.info("leave result = {}", result);
+
         if (!result) {
             return ResponseEntity.badRequest().build();
         }
@@ -129,7 +133,7 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{id}/add")
+    @PostMapping("order/{id}/join")
     public ResponseEntity add(@CurrentUser User user, @PathVariable Long id) {
         boolean result = orderService.participate(user, id);
 

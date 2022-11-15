@@ -22,12 +22,12 @@
                 class="d-inline-block ml-1" tabindex="0" data-toggle="tooltip" data-placement="bottom" title="진행중">
                 <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>진행중</button>
             </span>
-          <span sec:authorize="isAuthenticated()" th:if="${order.isAvailable() && order.isParticipant(#authentication.principal)}"
+          <span sec:authorize="isAuthenticated()" th:if="${order.isAvailable() && !order.isParticipant(#authentication.principal) && !order.isOwner(#authentication.principal)}"
                 class="btn-group" role="group" aria-label="Basic example">
-                    <a class="btn btn-primary" th:href="@{'/order/' + ${order.id} + '/join'}">
+                    <button type="button" onclick=joinOrder(this) th:id="${order.id}" class="btn btn-primary">
                         참가
-                    </a>
-            </span>
+                    </button>
+          </span>
           <span sec:authorize="isAuthenticated()" th:if="${order.isOwner(#authentication.principal)}"
                 class="btn-group" role="group" aria-label="Basic example">
                     <a class="btn btn-warning" th:href="@{'/order/setting/' + ${order.id}}">
@@ -48,9 +48,9 @@
 
             <span sec:authorize="isAuthenticated()"
                 th:if="${!order.closed && order.isParticipant(#authentication.principal)}" class="btn-group" role="group">
-                    <a class="btn btn-danger" th:href="@{'/order/' + ${order.id} + '/leave'}">
+                    <button type="button" class="btn btn-danger" onclick=leaveOrder(this) th:id="${order.id}">
                         취소
-                    </a>
+                    </button>
             </span>
           <span>
               <a class="btn btn-outline-primary" th:href="@{'/orders/'}">
@@ -58,12 +58,18 @@
               </a>
           </span>
         </div>
-          <div class="col-6">
+
+          <div class="table table-striped-columns">
               <span>작성자 : </span> <span class="h2" th:text="${order.owner.name}">작성자 </span>
               <span>게시일 : </span> <span class="h2" th:text="${order.createdAt}">작성자 </span>
+          </div>
+
+          <div class="table table-striped-columns">
               <span>현재 인원 수 : </span> <span class="h2" th:text="${order.getUsers().size() + 1}">작성자 </span>
               <span>총 인원 수 : </span> <span class="h2" th:text="${order.numberOfLimit}">작성자 </span>
           </div>
+
+
           <div>
               <span>이미지: </span> <span class="h2" th:text="${order.item.itemImage}"/>
               <span>내용: </span> <span class="h2" th:text="${order.description}"/>
@@ -75,6 +81,7 @@
                       <div id="childId" th:value="${child.key}" th:text="${child.value}"></div>
                       <button th:id="${child.key}" onclick=deleteIdx(this) id="reply-btn-delete" type="button" class="btn btn-dark mt-2">삭제</button>
                   <div/>
+
 
 
               </div>
@@ -119,6 +126,54 @@
         })
     }
 </script>
+
+<script type="application/javascript" th:inline="javascript">
+    let joinOrder = (e) => {
+        let orderId = e.id
+
+        $.ajax({
+            type: "POST",
+            url: `/order/${orderId}/join`,
+            data: '',
+            autocomplete: {
+                enabled: true,
+                rightKey: true
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: "text"
+        }).done(function(res) {
+            console.log(res);
+            location.href=`/order/${orderId}`
+        }).fail(function (err) {
+            alert(JSON.stringify(err));
+        })
+    }
+</script>
+
+<script type="application/javascript" th:inline="javascript">
+    let leaveOrder = (e) => {
+        let orderId = e.id
+
+        $.ajax({
+            type: "POST",
+            url: `/order/${orderId}/leave`,
+            data: '',
+            autocomplete: {
+                enabled: true,
+                rightKey: true
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: "text"
+        }).done(function(res) {
+            console.log(res);
+            location.href=`/order/${orderId}/leave`
+        }).fail(function (err) {
+            alert(JSON.stringify(err));
+        })
+    }
+</script>
+
+
 
 
 <script type="application/javascript" th:inline="javascript">

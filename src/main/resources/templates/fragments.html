@@ -389,9 +389,8 @@
     <script src="/node_modules/summernote/dist/summernote-bs4.js"></script>
     <script type="application/javascript">
         $(function () {
-            $('.editor').summernote({
+            $(".summernote").summernote({
                 fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Noto Sans KR', 'Merriweather'],
-                tabsize: 2,
                 height: 300
             });
         });
@@ -407,21 +406,21 @@
                         <h5 class="card-title context" th:text="${order.title}"></h5>
                     </a>
                     <p class="card-text" th:text="${order.description}">description</p>
-<!--                    <p class="card-text context">-->
-<!--                        <span th:each="keyword: ${order.keyword}" class="font-weight-light text-monospace badge badge-pill badge-info mr-3">-->
-<!--                            <a th:href="@{'/search/keyword/' + ${keyword.name}}" class="text-decoration-none text-white">-->
-<!--                                <i class="fa fa-tag"></i> <span th:text="${keyword.name}">keyword</span>-->
-<!--                            </a>-->
-<!--                        </span>-->
-<!--                    </p>-->
-<!--                    <div class="d-flex justify-content-between align-items-center">-->
-<!--                        <small class="text-muted">-->
-<!--                            <i class="fa fa-user-circle"></i>-->
-<!--                            <span th:text="${order.userCount}"></span>명-->
-<!--                        </small>-->
-<!--                        <small class="text-muted date" th:text="${order.createdAt}">9 mins</small>-->
-<!--                    </div>-->
-
+                    <p class="card-text context">
+                        <span th:each="keyword: ${order.keywords}" class="font-weight-light text-monospace badge badge-pill badge-info mr-3">
+                            <a th:href="@{'/search/keyword/' + ${keyword.name}}" class="text-decoration-none text-white">
+                                <i class="fa fa-tag"></i> <span th:text="${keyword.name}">keyword</span>
+                            </a>
+                        </span>
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fa fa-user-circle"></i>
+                            인원 제한 : <span th:text="${order.participantNum}"/> /
+                            <span th:text="${order.numberOfLimit}"/>명
+                        </small>
+                        <small class="text-muted date" th:text="${order.createdAt}">9 mins</small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -445,7 +444,7 @@
                 <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>진행중</button>
             </span>
 
-            <span sec:authorize="isAuthenticated()" th:if="${order.isAvailable() && !order.isOwner(#authentication.principal)}"
+            <span sec:authorize="isAuthenticated()" th:if="${order.isAvailable() && !order.isOwner(#authentication.principal) && !order.isParticipant(#authentication.principal)}"
                   class="btn-group" role="group" aria-label="Basic example">
                     <a class="btn btn-primary" th:href="@{'/order/' + ${order.id} + '/join'}">
                         참가

@@ -4,14 +4,11 @@ import com.example.zeronine.config.Tokenizer;
 import com.example.zeronine.notification.Notification;
 import com.example.zeronine.notification.NotificationRepository;
 import com.example.zeronine.order.Order;
-import com.example.zeronine.order.OrderRepository;
 
 import com.example.zeronine.settings.Keyword;
 import com.example.zeronine.user.User;
 import com.example.zeronine.user.UserRepository;
-import kr.co.shineware.nlp.komoran.core.Komoran;
-import kr.co.shineware.nlp.komoran.model.KomoranResult;
-import kr.co.shineware.nlp.komoran.model.Token;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -37,15 +34,10 @@ public class OrderEventListener {
     @EventListener
     public void handleOrderCreateEvent(OrderCreateEvent orderCreatedEvent) {
         Order order = orderCreatedEvent.getOrder();
-//        List<Keyword> keywords = order.getKeywords();
+
         Long orderId = order.getId();
         String title = order.getTitle();
-        List<String> keywords = orderCreatedEvent.getWords();
-
-//        String targetSentence = order.getTitle() + " " + order.getDescription();
-//        Long orderId = order.getId();
-
-//        List<String> morphs = tokenizer.getNouns(targetSentence);
+        List<Keyword> keywords = orderCreatedEvent.getKeywords();
 
         //키워드 타겟 유저 목록 조회
         Map<String, List<User>> notificationsTarget = userRepository.findNotificationsTargetUsers(keywords);

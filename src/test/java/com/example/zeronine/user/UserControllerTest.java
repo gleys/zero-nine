@@ -35,7 +35,6 @@ class UserControllerTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository userRepository;
-    @Autowired private UserService userService;
     @MockBean EmailService mailSender;
 
     @Test

@@ -29,7 +29,7 @@ public class OrderForm {
     private String name;
 
     @NotNull
-    private Long numberOfLimit;
+    private Integer numberOfLimit;
 
     @NotNull
     private Long price;
