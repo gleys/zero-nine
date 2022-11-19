@@ -1,51 +1,67 @@
 package com.example.zeronine.order.controller;
 
 import com.example.zeronine.category.CategoryRepository;
-import com.example.zeronine.order.Order;
+import com.example.zeronine.order.Orders;
 import com.example.zeronine.order.OrderRepository;
 import com.example.zeronine.order.OrderService;
 import com.example.zeronine.order.form.OrderForm;
+import com.example.zeronine.order.validator.OrderFormValidator;
 import com.example.zeronine.user.CurrentUser;
 import com.example.zeronine.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+
+import com.example.zeronine.utils.ResponseForm.Result;
+import static com.example.zeronine.utils.ResponseForm.success;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
-@RequestMapping("/order/setting")
+@RequestMapping("/orders/setting")
 @RequiredArgsConstructor
 public class OrderSettingController {
 
     private final OrderRepository orderRepository;
     private final CategoryRepository categoryRepository;
+    private final OrderFormValidator orderFormValidator;
     private final ModelMapper modelMapper;
     private final OrderService orderService;
+
+    @InitBinder("orderForm")
+    private void orderValid(WebDataBinder webDataBinder) {
+        webDataBinder.addValidators(orderFormValidator);
+    }
+
 
     @GetMapping("/{id}")
     public String editForm(@CurrentUser User user, @PathVariable Long id, Model model) {
 
-        Order order = orderRepository.findById(id).orElseThrow();
+        Orders orders = orderRepository.findById(id).orElseThrow();
 
-        if(!order.getOwner().equals(user)) {
+        if(!orders.getOwner().equals(user)) {
             throw new AccessDeniedException("권한이 없는 사용자 입니다.");
         }
 
         Map<Long, String> categories = categoryRepository.findAll().stream()
                 .collect(Collectors.toMap(o -> o.getId(), o -> o.getName()));
 
-        OrderForm orderForm = modelMapper.map(order, OrderForm.class);
-        modelMapper.map(order.getItem(), orderForm);
+        OrderForm orderForm = modelMapper.map(orders, OrderForm.class);
+        modelMapper.map(orders.getItem(), orderForm);
+        String keywords = orders.getKeywords().stream().map(keyword -> keyword.getName())
+                                .collect(Collectors.joining(","));
+
+        orderForm.setKeywords(keywords);
 
         orderForm.setCategories(categories);
 
@@ -71,19 +87,20 @@ public class OrderSettingController {
             return "order/edit";
         }
 
-        return "redirect:/order/" + orderId;
+        return "redirect:/orders/" + orderId;
     }
 
+    @ResponseBody
     @DeleteMapping("/{orderId}")
-    public ResponseEntity removeOrder(@CurrentUser User user, @PathVariable Long orderId) {
+    public Result<String> removeOrder(@CurrentUser User user, @PathVariable Long orderId) {
         log.info("remove order = {}", orderId);
         boolean remove = orderService.remove(user, orderId);
 
         if(!remove) {
-            return ResponseEntity.badRequest().build();
+            return success("FAIL");
         }
 
-        return ResponseEntity.ok().build();
+        return success("OK");
     }
 
 }

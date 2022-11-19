@@ -44,6 +44,10 @@
         .fa,.fab,.fad,.fal,.far,.fas{
             font-weight: 900 !important;
         }
+        .span-align {
+            text-align: left;
+        }
+
     </style>
 </head>
 
@@ -146,8 +150,8 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item">
-                <form th:action="@{/search/order}" class="form-inline" method="get">
-                    <input class="form-control mr-sm-2" name="keyword" type="search" placeholder="공구 찾기" aria-label="Search" />
+                <form th:action="@{/search/orders}" class="form-inline" method="get">
+                    <input class="form-control mr-sm-2" name="keyword" type="search" placeholder="주문 찾기" aria-label="Search"/>
                 </form>
             </li>
         </ul>
@@ -397,29 +401,41 @@
     </script>
 </div>
 
-<div th:fragment="order-list (orderList)" class="col-sm-12">
+<div th:fragment="orders-list (orderList)" class="col-sm-12">
     <div class="row">
-        <div class="col-md-4" th:each="order : ${orderList}">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-body">
-                    <a th:href="@{'/order/' + ${order.id}}" class="text-decoration-none">
-                        <h5 class="card-title context" th:text="${order.title}"></h5>
+        <div class="col-md-4" th:each="orders : ${orderList}">
+            <div class="card p-3 mb-2">
+                <div class="d-flex justify-content-between">
+                    <div class="d-flex flex-row align-items-center">
+                        <div class="icon"> <i class="bx bxl-mailchimp"></i> </div>
+                        <div class="ms-2 c-details">
+                            <h6 class="mb-0" th:text="${orders.owner.name}">작성자</h6>
+                            <span class="date-time" th:text="${orders.createdAt}">1일 전</span>
+                        </div>
+                    </div>
+                    <div class="badge"> <span>조회수</span> <span th:text="${orders.viewCount}"></span> </div>
+                </div>
+                <div class="mt-5">
+                    <a th:href="@{'/orders/' + ${orders.id}}" class="text-decoration-none">
+                        <h3 class="heading" th:text="${orders.title}">제목</h3>
                     </a>
-                    <p class="card-text" th:text="${order.description}">description</p>
-                    <p class="card-text context">
-                        <span th:each="keyword: ${order.keywords}" class="font-weight-light text-monospace badge badge-pill badge-info mr-3">
-                            <a th:href="@{'/search/keyword/' + ${keyword.name}}" class="text-decoration-none text-white">
+
+                    <div class="mt-2">
+                        <span th:each="keyword: ${orders.keywords}" class="font-weight-light text-monospace badge badge-pill badge-info mr-3">
+                            <a th:href="@{'/search/orders?keyword=' + ${keyword.name}}" class="text-decoration-none text-white">
                                 <i class="fa fa-tag"></i> <span th:text="${keyword.name}">keyword</span>
                             </a>
                         </span>
-                    </p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">
-                            <i class="fa fa-user-circle"></i>
-                            인원 제한 : <span th:text="${order.participantNum}"/> /
-                            <span th:text="${order.numberOfLimit}"/>명
-                        </small>
-                        <small class="text-muted date" th:text="${order.createdAt}">9 mins</small>
+                    </div>
+                    <div class="mt-5">
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" th:attr="aria-valuenow=${orders.participantNum / orders.numberOfLimit}"
+                                 style="width: 50%" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="mt-3">
+                            <i class="fa fa-user-circle"></i>인원 제한 : <span th:text="${orders.participantNum}"/> /
+                            <span th:text="${orders.numberOfLimit}"/>명
+                        </div>
                     </div>
                 </div>
             </div>
@@ -427,48 +443,48 @@
     </div>
 </div>
 
-<div th:fragment="order-info">
+<div th:fragment="orders-info">
     <div class="row pt-4 text-left justify-content-center bg-light">
         <div class="col-6">
-            <a href="#" class="text-decoration-none" th:href="@{'/order/' + ${order.id}}">
-                <span class="h2" th:text="${order.title}">공구 이름</span>
+            <a href="#" class="text-decoration-none" th:href="@{'/orders/' + ${orders.id}}">
+                <span class="h2" th:text="${orders.title}">공구 이름</span>
             </a>
         </div>
         <div class="col-4 text-right justify-content-end">
-            <span th:if="${order.closed}"
+            <span th:if="${orders.closed}"
                   class="d-inline-block" tabindex="0" data-toggle="tooltip" data-placement="bottom" title="종료">
                     <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>종료</button>
             </span>
-            <span th:if="${!order.closed}"
+            <span th:if="${!orders.closed}"
               class="d-inline-block ml-1" tabindex="0" data-toggle="tooltip" data-placement="bottom" title="진행중">
                 <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>진행중</button>
             </span>
 
-            <span sec:authorize="isAuthenticated()" th:if="${order.isAvailable() && !order.isOwner(#authentication.principal) && !order.isParticipant(#authentication.principal)}"
+            <span sec:authorize="isAuthenticated()" th:if="${orders.isAvailable() && !orders.isOwner(#authentication.principal) && !orders.isParticipant(#authentication.principal)}"
                   class="btn-group" role="group" aria-label="Basic example">
-                    <a class="btn btn-primary" th:href="@{'/order/' + ${order.id} + '/join'}">
+                    <a class="btn btn-primary" th:href="@{'/orders/' + ${orders.id} + '/join'}">
                         참가
                     </a>
             </span>
 
-            <span sec:authorize="isAuthenticated()" th:if="${order.isOwner(#authentication.principal)}"
+            <span sec:authorize="isAuthenticated()" th:if="${orders.isOwner(#authentication.principal)}"
                   class="btn-group" role="group" aria-label="Basic example">
-                    <a class="btn btn-warning" th:href="@{'/order/setting/' + ${order.id}}">
+                    <a class="btn btn-warning" th:href="@{'/orders/setting/' + ${orders.id}}">
                         수정
                     </a>
             </span>
 
-            <span sec:authorize="isAuthenticated()" th:if="${order.isOwner(#authentication.principal) && !order.closed}"
+            <span sec:authorize="isAuthenticated()" th:if="${orders.isOwner(#authentication.principal) && !orders.closed}"
                   class="btn-group" role="group" aria-label="Basic example">
-                    <a class="btn btn-warning" th:href="@{'/order/setting/' + ${order.id}}">
+                    <a class="btn btn-warning" th:href="@{'/orders/setting/' + ${orders.id}}">
                         삭제
                     </a>
             </span>
 
 
             <span sec:authorize="isAuthenticated()"
-                  th:if="${!order.closed && order.isParticipant(#authentication.principal)}" class="btn-group" role="group">
-                    <a class="btn btn-danger" th:href="@{'/order/' + ${order.id} + '/leave'}">
+                  th:if="${!orders.closed && orders.isParticipant(#authentication.principal)}" class="btn-group" role="group">
+                    <a class="btn btn-danger" th:href="@{'/orders/' + ${orders.id} + '/leave'}">
                         취소
                     </a>
             </span>
@@ -482,11 +498,11 @@
 
     <div class="row justify-content-center bg-light">
         <div class="col-10">
-            <p class="lead" th:text="${order.description}"></p>
+            <p class="lead" th:text="${orders.description}"></p>
         </div>
     </div>
 
-    <div th:fragment="order-form (mode, action)">
+    <div th:fragment="orders-form (mode, action)">
         <div class="py-5 text-center">
             <h2 th:if="${mode == 'edit'}">주문 수정</h2>
             <h2 th:if="${mode == 'new'}">주문 생성</h2>
@@ -608,23 +624,6 @@
         </div>
 
     </div>
-<!--    <div class="row justify-content-center bg-light">-->
-<!--        <div class="col-10">-->
-<!--            <p>-->
-<!--                <span th:each="tag: ${study.tags}"-->
-<!--                      class="font-weight-light text-monospace badge badge-pill badge-info mr-3">-->
-<!--                    <a th:href="@{'/search/tag/' + ${tag.title}}" class="text-decoration-none text-white">-->
-<!--                        <i class="fa fa-tag"></i> <span th:text="${tag.title}">Tag</span>-->
-<!--                    </a>-->
-<!--                </span>-->
-<!--                <span th:each="zone: ${study.zones}" class="font-weight-light text-monospace badge badge-primary mr-3">-->
-<!--                    <a th:href="@{'/search/zone/' + ${zone.id}}" class="text-decoration-none text-white">-->
-<!--                        <i class="fa fa-globe"></i> <span th:text="${zone.localNameOfCity}">City</span>-->
-<!--                    </a>-->
-<!--                </span>-->
-<!--            </p>-->
-<!--        </div>-->
-<!--    </div>-->
 </div>
 
 

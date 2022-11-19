@@ -1,5 +1,6 @@
 package com.example.zeronine.order;
 
+import com.example.zeronine.settings.QKeyword;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.JPQLQuery;
 import org.springframework.data.domain.Page;
@@ -14,18 +15,31 @@ import static com.querydsl.jpa.JPAExpressions.selectFrom;
 public class OrderRepositoryImpl extends QuerydslRepositorySupport implements CustomOrderRepository{
 
     public OrderRepositoryImpl() {
-        super(Order.class);
+        super(Orders.class);
     }
 
     @Override
-    public Page<Order> findAllByPaging(Pageable pageable) {
-        QOrder order = QOrder.order;
+    public Page<Orders> findAllByPaging(Pageable pageable) {
+        QOrders order = QOrders.orders;
 
-        JPQLQuery<Order> query = selectFrom(order)
+        JPQLQuery<Orders> query = selectFrom(order)
                 .orderBy(order.createdAt.desc());
 
-        JPQLQuery<Order> orderJPQLQuery = getQuerydsl().applyPagination(pageable, query);
-        QueryResults<Order> fetchResults = orderJPQLQuery.fetchResults();
+        JPQLQuery<Orders> orderJPQLQuery = getQuerydsl().applyPagination(pageable, query);
+        QueryResults<Orders> fetchResults = orderJPQLQuery.fetchResults();
+
+        return new PageImpl<>(fetchResults.getResults(), pageable, fetchResults.getTotal());
+    }
+
+    @Override
+    public Page<Orders> findByKeyword(String word, Pageable pageable) {
+        QOrders order = QOrders.orders;
+        JPQLQuery<Orders> query = from(order).where(order.keywords.any().name.containsIgnoreCase(word))
+                                            .leftJoin(order.keywords, QKeyword.keyword).fetchJoin()
+                                            .distinct();
+
+        JPQLQuery<Orders> pageableQuery = getQuerydsl().applyPagination(pageable, query);
+        QueryResults<Orders> fetchResults = pageableQuery.fetchResults();
 
         return new PageImpl<>(fetchResults.getResults(), pageable, fetchResults.getTotal());
     }

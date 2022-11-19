@@ -1,15 +1,11 @@
 package com.example.zeronine.order;
 
+import com.example.zeronine.comment.Comment;
 import com.example.zeronine.item.Item;
 import com.example.zeronine.settings.Keyword;
 import com.example.zeronine.user.User;
 import com.example.zeronine.user.UserAccount;
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.EntityGraph;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -20,7 +16,6 @@ import java.util.List;
 import java.util.Set;
 
 import static javax.persistence.CascadeType.*;
-import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.FetchType.LAZY;
 import static lombok.AccessLevel.PROTECTED;
 
@@ -30,7 +25,7 @@ import static lombok.AccessLevel.PROTECTED;
 @NoArgsConstructor(access = PROTECTED)
 @NamedEntityGraph(name = "User.keywords", attributeNodes = @NamedAttributeNode("keywords"))
 @Entity
-public class Order {
+public class Orders {
 
     @Id @GeneratedValue
     @Column(name = "orders_id")
@@ -49,9 +44,14 @@ public class Order {
     @ManyToMany(cascade = {MERGE, PERSIST})
     private Set<User> users = new HashSet<>();
 
-    @OneToOne(fetch = LAZY, cascade = ALL)
+    @OneToOne(orphanRemoval = true, fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "items_id", foreignKey = @ForeignKey(name = "fk_orders_to_items"))
     private Item item;
+
+    @OneToMany(orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
+    private Long viewCount;
 
     @ManyToMany(cascade = { PERSIST, MERGE })
     @JoinTable(
@@ -70,6 +70,7 @@ public class Order {
     private LocalDateTime createdAt;
 
     public void openOrder(User user, Item item, Integer numberOfLimit) {
+        this.viewCount = 0L;
         this.setOwner(user);
         this.setItem(item);
         this.setClosed(false);
@@ -92,6 +93,14 @@ public class Order {
         this.keywords.addAll(keywords);
     }
 
+    public void setKeywords(List<Keyword> keywords) {
+        this.keywords = keywords;
+    }
+
+    public void addViewCount() {
+        this.viewCount++;
+    }
+
     public void setClosed(boolean flag) {
         this.closed = flag;
     }
@@ -105,11 +114,11 @@ public class Order {
     }
 
     public boolean isFull() {
-        return this.participantNum < this.numberOfLimit;
+        return this.participantNum >= this.numberOfLimit;
     }
 
     public boolean isParticipant(UserAccount user) {
-        return this.users.contains(user.getUser());
+        return !this.owner.equals(user.getUser()) && this.users.contains(user.getUser());
     }
 
     public void setItem(Item item) {

@@ -2,40 +2,39 @@ package com.example.zeronine.order.controller;
 
 import com.example.zeronine.category.CategoryRepository;
 import com.example.zeronine.comment.Comment;
-import com.example.zeronine.comment.CommentRepository;
 import com.example.zeronine.comment.CommentService;
 import com.example.zeronine.comment.form.CommentForm;
-import com.example.zeronine.config.Tokenizer;
-import com.example.zeronine.order.Order;
+
+import com.example.zeronine.utils.ResponseForm.Result;
+import static com.example.zeronine.utils.ResponseForm.success;
+
+import com.example.zeronine.order.Orders;
 import com.example.zeronine.order.OrderRepository;
 import com.example.zeronine.order.OrderService;
+
 import com.example.zeronine.order.form.OrderForm;
 import com.example.zeronine.order.validator.OrderFormValidator;
+
 import com.example.zeronine.user.CurrentUser;
 import com.example.zeronine.user.User;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-@RequiredArgsConstructor
 @Controller
+@RequiredArgsConstructor
 public class OrderController {
 
     private final CategoryRepository categoryRepository;
@@ -52,16 +51,7 @@ public class OrderController {
 
     @GetMapping("/new-order")
     public String newOrderForm(@CurrentUser User user, Model model) {
-        model.addAttribute(user);
-        OrderForm orderForm = new OrderForm();
-
-        Map<Long, String> categories = categoryRepository.findAll().stream()
-                .collect(Collectors.toMap(o -> o.getId(), o -> o.getName()));
-
-        orderForm.setCategories(categories);
-
-        model.addAttribute(orderForm);
-        model.addAttribute(user);
+        setOrderForm(user, model, new OrderForm());
 
         return "order/form";
     }
@@ -71,31 +61,33 @@ public class OrderController {
                                  BindingResult bindingResult, Model model) {
 
         if (bindingResult.hasErrors()) {
-            log.info("error occur = {}", bindingResult.getAllErrors());
-
-            Map<Long, String> categories = categoryRepository.findAll().stream()
-                    .collect(Collectors.toMap(o -> o.getId(), o -> o.getName()));
-
-            orderForm.setCategories(categories);
-
-            model.addAttribute(user);
-            model.addAttribute(orderForm);
-
+            setOrderForm(user, model, orderForm);
             return "order/form";
         }
 
         Long orderId = orderService.createOrder(user, orderForm);
-
-        return "redirect:/order/" + orderId;
+        return "redirect:/orders/" + orderId;
     }
 
-    @GetMapping("/order/{id}")
-    public String viewOrder(@CurrentUser User user, @PathVariable Long id, Model model) {
-        Order order = orderRepository.findById(id).orElseThrow();
-        Map<Long, Map<Long, String>> allComments = commentService.getAllComments(id);
+    private void setOrderForm(User user, Model model, OrderForm orderForm) {
+        Map<Long, String> categories = categoryRepository.findAll().stream()
+                .collect(Collectors.toMap(o -> o.getId(), o -> o.getName()));
+
+        orderForm.setCategories(categories);
 
         model.addAttribute(user);
-        model.addAttribute(order);
+        model.addAttribute(orderForm);
+    }
+
+    @GetMapping("/orders/{id}")
+    public String viewOrder(@CurrentUser User user, @PathVariable Long id, Model model) {
+        Orders orders = orderRepository.findById(id).orElseThrow();
+        orders.addViewCount();
+
+        Map<Comment, List<Comment>> allComments = commentService.getAllComments(id);
+
+        model.addAttribute(user);
+        model.addAttribute("orders", orders);
         model.addAttribute("comments", allComments);
 
         model.addAttribute(new CommentForm());
@@ -104,7 +96,7 @@ public class OrderController {
 
     @GetMapping("/orders")
     public String myOrderList(@CurrentUser User user, Model model) {
-        List<Order> orders = orderRepository.findByOwner(user.getId());
+        List<Orders> orders = orderRepository.findByOwner(user.getId());
         model.addAttribute(user);
         model.addAttribute(orders);
 
@@ -113,35 +105,34 @@ public class OrderController {
 
     @GetMapping("/orders/all")
     public String allOrders(@CurrentUser User user, Model model) {
-        List<Order> orders = orderRepository.findAll();
+        List<Orders> orders = orderRepository.findAll();
         model.addAttribute(orders);
         model.addAttribute(user);
 
         return "order/list";
     }
 
-    @PostMapping("order/{id}/leave")
-    public ResponseEntity remove(@CurrentUser User user, @PathVariable Long id) {
-        log.info("leave order");
+    @ResponseBody
+    @PostMapping("/orders/{id}/leave")
+    public Result<String> remove(@CurrentUser User user, @PathVariable Long id) {
         boolean result = orderService.leave(user, id);
-        log.info("leave result = {}", result);
 
         if (!result) {
-            return ResponseEntity.badRequest().build();
+            return success("FAIL");
         }
 
-        return ResponseEntity.ok().build();
+        return success("OK");
     }
 
-    @PostMapping("order/{id}/join")
-    public ResponseEntity add(@CurrentUser User user, @PathVariable Long id) {
+    @PostMapping("/orders/{id}/join")
+    public Result<String> add(@CurrentUser User user, @PathVariable Long id) {
         boolean result = orderService.participate(user, id);
 
         if (!result) {
-            return ResponseEntity.badRequest().build();
+            return success("FAIL");
         }
 
-        return ResponseEntity.ok().build();
+        return success("OK");
     }
 
 }

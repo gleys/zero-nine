@@ -16,7 +16,6 @@ public class Tokenizer {
 
     private final Komoran tokenizer = new Komoran(FULL);
 
-
     public List<String> getNouns(String sentence) {
         KomoranResult analyzeResult = tokenizer.analyze(sentence);
 

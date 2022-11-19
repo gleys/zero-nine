@@ -13,13 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Transactional(readOnly = true)
-public interface OrderRepository extends JpaRepository<Order, Long>, CustomOrderRepository {
+public interface OrderRepository extends JpaRepository<Orders, Long>, CustomOrderRepository {
 
-    @Query("select o from Order o where o.owner.id = :id")
-    List<Order> findByOwner(@Param("id") Long id);
+    @Query("select o from Orders o where o.owner.id = :id")
+    List<Orders> findByOwner(@Param("id") Long id);
 
-    List<Order> findByUsers(User user);
+    List<Orders> findByUsers(User user);
 
     @EntityGraph("User.keywords")
-    Page<Order> findAll(Pageable pageable);
+    Page<Orders> findAll(Pageable pageable);
+
 }

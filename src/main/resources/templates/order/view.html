@@ -2,115 +2,183 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:text="http://www.w3.org/1999/xhtml">
 
-<head th:replace="fragments.html :: head"/>
+<head th:replace="fragments.html :: head">
+    <style>
+        .fw-bold {
+            font-weight: 700 !important;
+        }
+        .comment-header {
+            display: flex;
+        }
+
+    </style>
+
+</head>
 
 <body class="bg-light">
   <div th:replace="fragments.html :: main-nav"/>
-    <div class="container">
-      <div class="row pt-4 text-left justify-content-center bg-light">
-        <div class="col-6">
-          <a href="#" class="text-decoration-none" th:href="@{'/order/' + ${order.id}}">
-            <span class="h2" th:text="${order.title}">공구 이름</span>
-          </a>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <article>
+                    <!-- 주문 헤더-->
+                    <header class="mb-4">
+                        <!-- 주문 제목-->
+                        <h1 class="fw-bolder mb-1">
+                            <a href="#" class="text-decoration-none" th:href="@{'/orders/' + ${orders.id}}">
+                                <span class="h2" th:text="${orders.title}">공구 이름</span>
+                            </a>
+
+                            <div class="col-4 text-right justify-content-end">
+                                <span th:if="${orders.closed}" class="d-inline-block" tabindex="0" data-toggle="tooltip" data-placement="bottom" title="종료">
+                                    <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>종료</button>
+                                </span>
+                                <span th:if="${!orders.closed}"class="d-inline-block ml-1" tabindex="0"
+                                       data-toggle="tooltip" data-placement="bottom" title="진행중">
+                                    <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>진행중</button>
+                                 </span>
+                                <span sec:authorize="isAuthenticated()" th:if="${orders.isAvailable() && !orders.isParticipant(#authentication.principal) && !orders.isOwner(#authentication.principal)}"
+                                      class="btn-group" role="group" aria-label="Basic example">
+                                    <button type="button" onclick=joinOrder(this) th:id="${orders.id}" class="btn btn-primary">
+                                        참가
+                                    </button>
+                                </span>
+
+                                <span sec:authorize="isAuthenticated()" th:if="${orders.isOwner(#authentication.principal)}"
+                                      class="btn-group" role="group" aria-label="Basic example">
+                                    <a class="btn btn-warning" th:href="@{'/orders/setting/' + ${orders.id}}">
+                                        수정
+                                    </a>
+                                </span>
+
+                                <span sec:authorize="isAuthenticated()" class="btn-group" role="group"
+                                      th:if="${!orders.closed && orders.isParticipant(#authentication.principal)}">
+                                    <button type="button" class="btn btn-danger" onclick=leaveOrder(this) th:id="${orders.id}">
+                                        취소
+                                    </button>
+                                </span>
+
+                                <span sec:authorize="isAuthenticated()" th:if="${orders.isOwner(#authentication.principal) && !orders.closed}"
+                                  class="btn-group" role="group" aria-label="Basic example">
+                                    <button class="btn btn-danger" onclick=deleteOrder(this) th:id="${orders.id}" type="button">
+                                        삭제
+                                    </button>
+                                </span>
+
+
+                                <span>
+                                  <a class="btn btn-outline-primary" th:href="@{'/orders/'}">
+                                      <i class="fa fa-list">목록</i>
+                                  </a>
+                                </span>
+                            </div>
+                        </h1>
+
+                        <!-- 작성자, 게시일-->
+                        <div class="text-muted fst-italic mb-2">
+                            <span>작성자 : </span> <span class="h2" th:text="${orders.owner.name}">작성자 </span>
+                            <span>게시일 : </span> <span class="h2" th:text="${orders.createdAt}">작성자 </span>
+                        </div>
+
+<!--                        <div th:text="${orders.createdAt}" class="text-muted fst-italic mb-2"/>-->
+                        <!-- 주문 키워드-->
+                        <div class="mt-2">
+                            <span th:each="keyword: ${orders.keywords}" class="badge bg-secondary text-decoration-none link-light">
+                                <a th:href="@{'/search/orders?keyword=' + ${keyword.name}}" class="text-decoration-none text-white">
+                                    <i class="fa fa-tag"></i> <span th:text="${keyword.name}">keyword</span>
+                                </a>
+                            </span>
+                        </div>
+                    </header>
+                    <!-- 아이템 이미지 -->
+                    <figure class="mb-4"><img class="img-fluid rounded" src="https://dummyimage.com/900x400/ced4da/6c757d.jpg" alt="...">
+<!--                        <span>이미지: </span> <span class="h2" th:text="${orders.item.itemImage}"/>-->
+                    </figure>
+                    <!-- Post content-->
+                    <section class="mb-5">
+                        <span class="h2" th:text="${orders.description}"/>
+                    </section>
+                </article>
+                <!-- 댓글 -->
+                <section class="mb-5">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <!-- Comment with nested comments-->
+                            <div th:each="parent: ${comments}">
+                                <!--자식 댓글 있는 경우-->
+                                <div class="d-flex mb-4" th:if="${!#lists.isEmpty(parent.value)}">
+                                    <div class="flex-shrink-0">
+                                        <img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="...">
+                                    </div>
+                                    <!--부모 댓글-->
+                                    <div th:name="parent" class="ms-3">
+                                        <div th:name="*{parent.key.id}" onclick=insertCommentBox(this) id="parentId" th:value="*{parent.key}" class="ms-3">
+                                                <span th:text="*{parent.key.writer.name}" class="fw-bold">이름</span>
+                                                <span th:text="*{parent.key.createdAt}"/>
+                                                <div th:type="button" onclick="deleteIdx(this)" class="badge delete"> <span>삭제</span> </span> </div>
+                                            <div th:text="*{parent.key.text}"/>
+                                        </div>
+                                        <!--자식 댓글-->
+                                        <div onclick=insertCommentBox(this) class="d-flex mt-4" th:id="*{child.id}" th:value="${parent.key.id}" th:each="child: ${parent.value}">
+                                            <div class="flex-shrink-0">
+                                                <img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="...">
+                                            </div>
+                                            <div th:name="*{parent.key.id}" th:value="*{parent.key.id}" class="ms-3">
+                                                <span th:text="*{child.writer.name}" class="fw-bold">이름</span>
+                                                <span th:text="*{child.createdAt}"/>
+                                                <div th:type="button" onclick="deleteIdx(this)" class="badge delete"> <span>삭제</span> </span> </div>
+                                                <div th:text="*{child.text}"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!--자식 댓글 없는 경우-->
+                                <div class="d-flex" th:if="${#lists.isEmpty(parent.value)}">
+                                    <div class="flex-shrink-0">
+                                        <img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="...">
+                                    </div>
+                                    <div th:name="single" class="ms-3">
+                                        <div th:name="*{parent.key.id}" th:id="*{parent.key.id}" th:value="*{parent.key.id}" class="ms-3">
+                                            <span onclick=insertCommentBox(this) th:text="*{parent.key.writer.name}" class="fw-bold">이름</span>
+                                            <span th:text="*{parent.key.createdAt}"/>
+                                            <div th:type="button" onclick={deleteIdx(this)} class="badge delete"> <span>삭제</span> </span> </div>
+                                            <div th:text="*{parent.key.text}"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 댓글 폼-->
+                    <form class="mb-4">
+<!--                        <textarea class="form-control" rows="3" placeholder="댓글을 입력하세요."></textarea>-->
+<!--                        <div>-->
+                            <input type="hidden" id="orderId" th:value="${orders.id}">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <textarea class="form-control" rows="1"></textarea>
+                                        <div th:value="${orders.id}" onclick="addReply(this)" id="reply-btn-save" class="btn btn-dark mt-3">등록</div>
+                                    </li>
+                                </ul>
+                            </input>
+<!--                        </div>-->
+                    </form>
+                </section>
+            </div>
         </div>
-        <div class="col-4 text-right justify-content-end">
-            <span th:if="${order.closed}"
-                  class="d-inline-block" tabindex="0" data-toggle="tooltip" data-placement="bottom" title="종료">
-                    <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>종료</button>
-            </span>
-          <span th:if="${!order.closed}"
-                class="d-inline-block ml-1" tabindex="0" data-toggle="tooltip" data-placement="bottom" title="진행중">
-                <button class="btn btn-primary btn-sm" style="pointer-events: none;" type="button" disabled>진행중</button>
-            </span>
-          <span sec:authorize="isAuthenticated()" th:if="${order.isAvailable() && !order.isParticipant(#authentication.principal) && !order.isOwner(#authentication.principal)}"
-                class="btn-group" role="group" aria-label="Basic example">
-                    <button type="button" onclick=joinOrder(this) th:id="${order.id}" class="btn btn-primary">
-                        참가
-                    </button>
-          </span>
-          <span sec:authorize="isAuthenticated()" th:if="${order.isOwner(#authentication.principal)}"
-                class="btn-group" role="group" aria-label="Basic example">
-                    <a class="btn btn-warning" th:href="@{'/order/setting/' + ${order.id}}">
-                        수정
-                    </a>
-            </span>
-
-            <span sec:authorize="isAuthenticated()" th:if="${order.isOwner(#authentication.principal) && !order.closed}"
-                  class="btn-group" role="group" aria-label="Basic example">
-<!--                    <a id="deleteOrder" class="btn btn-danger"  th:href="@{'/order/setting/' + ${order.id} + '/remove'}">-->
-<!--                        삭제-->
-<!--                    </a>-->
-                <button class="btn btn-danger" onclick=deleteOrder(this) th:id="${order.id}" type="button">
-                    삭제
-                </button>
-            </span>
-
-
-            <span sec:authorize="isAuthenticated()"
-                th:if="${!order.closed && order.isParticipant(#authentication.principal)}" class="btn-group" role="group">
-                    <button type="button" class="btn btn-danger" onclick=leaveOrder(this) th:id="${order.id}">
-                        취소
-                    </button>
-            </span>
-          <span>
-              <a class="btn btn-outline-primary" th:href="@{'/orders/'}">
-                  <i class="fa fa-list"></i> 목록
-              </a>
-          </span>
-        </div>
-
-          <div class="table table-striped-columns">
-              <span>작성자 : </span> <span class="h2" th:text="${order.owner.name}">작성자 </span>
-              <span>게시일 : </span> <span class="h2" th:text="${order.createdAt}">작성자 </span>
-          </div>
-
-          <div class="table table-striped-columns">
-              <span>현재 인원 수 : </span> <span class="h2" th:text="${order.getUsers().size() + 1}">작성자 </span>
-              <span>총 인원 수 : </span> <span class="h2" th:text="${order.numberOfLimit}">작성자 </span>
-          </div>
-
-
-          <div>
-              <span>이미지: </span> <span class="h2" th:text="${order.item.itemImage}"/>
-              <span>내용: </span> <span class="h2" th:text="${order.description}"/>
-          </div>
-          <div>
-              <div id="parentId" th:value="${parent.key}" th:each="parent: ${comments}">
-                  댓글
-                  <div th:each="child: ${parent.value}">
-                      <div id="childId" th:value="${child.key}" th:text="${child.value}"></div>
-                      <button th:id="${child.key}" onclick=deleteIdx(this) id="reply-btn-delete" type="button" class="btn btn-dark mt-2">삭제</button>
-                  <div/>
-
-
-
-              </div>
-          </div>
-
-              <div>
-                  <input type="hidden" id="orderId" th:value="${order.id}">
-                  <ul class="list-group list-group-flush">
-                      <li class="list-group-item">
-                          <textarea class="form-control" id="reply-content" rows="1"></textarea>
-                          <button id="reply-btn-save" type="button" class="btn btn-dark mt-3">등록</button>
-                      </li>
-                  </ul>
-              </div>
       </div>
     </div>
-    </div>
-
-
 </body>
 
 <script th:replace="fragments.html :: ajax-csrf-header"></script>
 <script type="application/javascript" th:inline="javascript">
-    let deleteOrder = (e) => {
+    const deleteOrder = (e) => {
         let orderId = e.id
 
         $.ajax({
             type: "DELETE",
-            url: `/order/setting/${orderId}`,
+            url: `/orders/setting/${orderId}`,
             data: '',
             autocomplete: {
                 enabled: true,
@@ -127,13 +195,51 @@
     }
 </script>
 
+
 <script type="application/javascript" th:inline="javascript">
-    let joinOrder = (e) => {
-        let orderId = e.id
+    const insertCommentBox = (e) => {
+        if(document.querySelector('.child-comment-form')) {
+            document.querySelector('.child-comment-form').parentNode.innerHTML = '';
+        }
+
+        let parentId;
+        let target;
+
+        if (e.id != "parentId") {
+            parentId = e.id;
+            target = $(e).parents().get(0)
+
+        } else {
+            parentId = $(e).parent("div").attr("id");
+            target = document.getElementById(parentId);
+        }
+
+        const newForm = document.createElement("form");
+
+
+        newForm.className = "mb-4";
+        newForm.innerHTML = "<div class=\'child-comment-form\'>\n" +
+                    "        <input class='child' type=\"hidden\" id=\"orderId\">\n" +
+                    "        <ul class=\"list-group list-group-flush\">\n" +
+                    "            <li class=\"list-group-item\">\n" +
+                    "                <textarea name=\'child\' class=\"form-control\" id=\"reply-content\" rows=\"1\"></textarea>\n" +
+                    "                <button onclick='addReply(this)' value=[[${orders.id}]] id=\"reply-btn-save\" type=\"button\" class=\"btn btn-dark mt-3 child\">등록</button>\n" +
+                    "            </li>\n" +
+                    "        </ul>\n" +
+                    "        </input>\n" +
+                    "    </div>";
+
+        target.appendChild(newForm);
+    }
+</script>
+
+<script type="application/javascript" th:inline="javascript">
+    const joinOrder = (e) => {
+        const orderId = e.id
 
         $.ajax({
             type: "POST",
-            url: `/order/${orderId}/join`,
+            url: `/orders/${orderId}/join`,
             data: '',
             autocomplete: {
                 enabled: true,
@@ -143,7 +249,7 @@
             dataType: "text"
         }).done(function(res) {
             console.log(res);
-            location.href=`/order/${orderId}`
+            location.href=`/orders/${orderId}`
         }).fail(function (err) {
             alert(JSON.stringify(err));
         })
@@ -151,12 +257,12 @@
 </script>
 
 <script type="application/javascript" th:inline="javascript">
-    let leaveOrder = (e) => {
-        let orderId = e.id
+    const leaveOrder = (e) => {
+        const orderId = e.id
 
         $.ajax({
             type: "POST",
-            url: `/order/${orderId}/leave`,
+            url: `/orders/${orderId}/leave`,
             data: '',
             autocomplete: {
                 enabled: true,
@@ -166,7 +272,7 @@
             dataType: "text"
         }).done(function(res) {
             console.log(res);
-            location.href=`/order/${orderId}/leave`
+            location.href=`/orders/${orderId}`
         }).fail(function (err) {
             alert(JSON.stringify(err));
         })
@@ -177,13 +283,25 @@
 
 
 <script type="application/javascript" th:inline="javascript">
-    let deleteIdx = (e) => {
 
-        let targetId = e.id
-        let orderId = $('#orderId').val();
 
-        console.log(targetId);
-        console.log(orderId);
+    $('.delete').on('click', function (event) {
+        event.stopPropagation()
+    })
+    const deleteIdx = (e) => {
+        const orderId = $('#orderId').val();
+        let targetId = $(e).parent().attr("id");
+
+        //부모댓글, 자식댓글
+        if(isNaN(targetId)) {
+            let isParent = $($($(e).parents().get(0))).attr("id")
+
+            if(isParent) {
+                alert("대댓글이 있으면 삭제 불가능합니다.")
+                return;
+            }
+            targetId = $($(e).parents().get(1)).attr("id")
+        }
 
         $.ajax({
             type: "POST",
@@ -195,9 +313,9 @@
             },
             contentType: "application/json; charset=utf-8",
             dataType: "text"
-        }).done(function(res) {
+        }).done(function (res) {
             alert("댓글을 삭제 하였습니다.");
-            location.href = `/order/${orderId}`
+            location.href = `/orders/${orderId}`
         }).fail(function (err) {
             alert(JSON.stringify(err));
         })
@@ -205,38 +323,48 @@
 </script>
 
 <script type="application/javascript" th:inline="javascript">
-    let replyIdx = {
-        init: function() {
-            $('#reply-btn-save').on('click', () => {
-                this.replySave();
-            });
-        },
 
-        replySave: function() {
-            let data = $('#reply-content').val()
-            let orderId = $('#orderId').val();
+    const addReply = (e) => {
+        let parentId;
+        let orderId;
+        let text;
 
-            console.log(data);
-            console.log(orderId);
-            $.ajax({
-                type: "POST",
-                url: `/comment/${orderId}`,
-                data: JSON.stringify({text: data, parentId: 1}),
-                autocomplete: {
-                    enabled: true,
-                    rightKey: true,
-                },
-                contentType: "application/json; charset=utf-8",
-                dataType: "text"
-            }).done(function(res) {
-                alert("댓글을 작성하였습니다.");
-                location.href = `/order/${orderId}`
-            }).fail(function (err) {
-                alert(JSON.stringify(err));
-            })
+        if ($(e).siblings("textarea").attr("name") == "child") {
+            orderId = $(e).val()
+            text = $(e).siblings(".form-control").val();
+
+            const parents = $(e).parents().get(4);
+            const className = $(parents).find("div").get(0).className;
+
+            if (className == "ms-3") {
+                parentId = $($($(parents).find("div").get(3)).siblings().get(0)).attr("name")
+            }
+            else {
+                parentId = $(parents).attr("id")
+            }
         }
+        else {
+            text = $($(e).siblings().get(0)).val()
+            orderId = $(e).attr("value")
+        }
+
+        $.ajax({
+            type: "POST",
+            url: `/comment/${orderId}`,
+            data: JSON.stringify({text: text, parentId: parentId}),
+            autocomplete: {
+                enabled: true,
+                rightKey: true,
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: "text"
+        }).done(function(res) {
+            location.href = `/orders/${orderId}`
+        }).fail(function (err) {
+            alert(JSON.stringify(err));
+        })
     }
-    replyIdx.init();
+
 </script>
 
 </html>

@@ -6,5 +6,6 @@ import org.springframework.data.domain.Pageable;
 
 public interface CustomOrderRepository {
 
-    Page<Order> findAllByPaging(Pageable pageable);
+    Page<Orders> findAllByPaging(Pageable pageable);
+    Page<Orders> findByKeyword(String keyword, Pageable pageable);
 }

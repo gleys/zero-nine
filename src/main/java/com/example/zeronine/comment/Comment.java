@@ -1,9 +1,8 @@
 package com.example.zeronine.comment;
 
-import com.example.zeronine.order.Order;
+import com.example.zeronine.order.Orders;
 import com.example.zeronine.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,7 +36,7 @@ public class Comment {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "orders_id", foreignKey = @ForeignKey(name = "comments_to_orders"))
-    private Order order;
+    private Orders orders;
 
     //원댓글
     @ManyToOne(fetch = LAZY, cascade = {PERSIST, MERGE})
@@ -51,11 +50,11 @@ public class Comment {
 
     private LocalDateTime createdAt;
 
-    public static Comment write(Order order, User writer, Comment parent, String text) {
+    public static Comment write(Orders orders, User writer, Comment parent, String text) {
         Comment comment = new Comment();
         comment.writer = writer;
         comment.text = text;
-        comment.order = order;
+        comment.orders = orders;
 
         //대댓글인 경우
         if (parent != null) {
@@ -64,6 +63,8 @@ public class Comment {
         }
 
         comment.createdAt = LocalDateTime.now();
+        orders.getComments().add(comment);
+
         return comment;
     }
 

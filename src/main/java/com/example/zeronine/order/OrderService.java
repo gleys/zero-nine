@@ -2,7 +2,6 @@ package com.example.zeronine.order;
 
 import com.example.zeronine.category.Category;
 import com.example.zeronine.category.CategoryRepository;
-import com.example.zeronine.config.Tokenizer;
 import com.example.zeronine.item.Item;
 
 import com.example.zeronine.order.event.OrderCreateEvent;
@@ -15,6 +14,7 @@ import com.example.zeronine.user.User;
 
 import com.example.zeronine.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,6 +25,7 @@ import java.util.*;
 
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -47,19 +48,17 @@ public class OrderService {
         Item item = modelMapper.map(form, Item.class);
         item.setCategory(findCategory);
 
-        Order order = modelMapper.map(form, Order.class);
+        Orders orders = modelMapper.map(form, Orders.class);
 
-        order.addKeywords(keywords);
-        order.openOrder(user, item, form.getNumberOfLimit());
+        orders.addKeywords(keywords);
+        orders.openOrder(user, item, form.getNumberOfLimit());
 
-        orderRepository.save(order);
+        orderRepository.save(orders);
 
+        eventPublisher.publishEvent(new OrderCreateEvent(orders, keywords));
 
-        eventPublisher.publishEvent(new OrderCreateEvent(order, keywords));
-
-        return order.getId();
+        return orders.getId();
     }
-
 
     private List<Keyword> saveKeywords(OrderForm form) {
         List<String> words = Arrays.stream(form.getKeywords().trim().replace(" ", "")
@@ -79,15 +78,15 @@ public class OrderService {
     }
 
     public boolean participate(User user, Long id) {
-        Order findOrder = orderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호 입니다."));
+        Orders findOrders = orderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호 입니다."));
         User findUser = userRepository.findById(user.getId()).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자 입니다."));
 
-        if (findOrder.isAvailable()) {
-            findOrder.participate(findUser);
+        if (findOrders.isAvailable()) {
+            findOrders.participate(findUser);
 
-            if(findOrder.isFull()) {
-                eventPublisher.publishEvent(new OrderUpdateEvent(findOrder, "목표한 인원수에 도달하여 주문 승인 처리 되었습니다."));
-                findOrder.setClosed(true);
+            if(findOrders.isFull()) {
+                eventPublisher.publishEvent(new OrderUpdateEvent(findOrders, "목표한 인원수에 도달하여 주문 승인 처리 되었습니다."));
+                findOrders.setClosed(true);
             }
             return true;
         }
@@ -96,11 +95,11 @@ public class OrderService {
     }
 
     public boolean leave(User user, Long id) {
-        Order findOrder = orderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호 입니다."));
+        Orders findOrders = orderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호 입니다."));
         User findUser = userRepository.findById(user.getId()).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자 입니다."));
 
-        if (findOrder.getOwner().equals(findUser) || findOrder.getUsers().contains(findUser)) {
-            findOrder.leaveUser(findUser);
+        if (findOrders.getUsers().contains(findUser)) {
+            findOrders.leaveUser(findUser);
             return true;
         }
 
@@ -108,19 +107,27 @@ public class OrderService {
     }
 
     public boolean update(User user, Long orderId, OrderForm form) {
-        Order findOrder = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException());
+        Orders findOrders = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException());
 
-        if (findOrder.getOwner().equals(user) || !isValid(findOrder, form)) {
-            modelMapper.map(form, findOrder);
+        if (findOrders.getOwner().equals(user) || !isValid(findOrders, form)) {
+            List<Keyword> keywords = saveKeywords(form);
 
-            Item item = findOrder.getItem();
+            modelMapper.map(form, findOrders);
+            findOrders.setKeywords(keywords);
+
+            Item item = findOrders.getItem();
             Category category = categoryRepository.findById(form.getCategoryId()).orElseThrow();
 
             modelMapper.map(form, item);
             item.setCategory(category);
-            findOrder.setItem(item);
+            findOrders.setItem(item);
 
-            eventPublisher.publishEvent(new OrderUpdateEvent(findOrder, "주문 정보가 변경되었습니다."));
+            //인원수 만원 상황에 추가로 늘려주었을 경우 상태를 open 으로 바꿈
+            if(isChangeLimit(findOrders)) {
+                findOrders.setClosed(false);
+            }
+
+            eventPublisher.publishEvent(new OrderUpdateEvent(findOrders, "주문 정보가 변경되었습니다."));
 
             return true;
         }
@@ -128,14 +135,19 @@ public class OrderService {
         return false;
     }
 
-    private boolean isValid(Order order, OrderForm form) {
-        return order.getNumberOfLimit() > form.getNumberOfLimit();
+    private boolean isChangeLimit(Orders order) {
+        return order.isClosed() && order.getNumberOfLimit() > order.getParticipantNum();
+    }
+
+
+    private boolean isValid(Orders orders, OrderForm form) {
+        return orders.getNumberOfLimit() > form.getNumberOfLimit();
     }
 
     public boolean remove(User user, Long orderId) {
-        Order findOrder = orderRepository.findById(orderId).orElseThrow();
-        if (findOrder.getOwner().equals(user) && !findOrder.isClosed()) {
-            orderRepository.delete(findOrder);
+        Orders findOrders = orderRepository.findById(orderId).orElseThrow();
+        if (findOrders.getOwner().equals(user) && !findOrders.isClosed()) {
+            orderRepository.delete(findOrders);
             return true;
         }
         return false;

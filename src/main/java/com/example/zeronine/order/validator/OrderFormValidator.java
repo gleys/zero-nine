@@ -10,6 +10,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,7 +34,7 @@ public class OrderFormValidator implements Validator {
             String description = form.getDescription();
             String targetSentence = form.getTitle() + " " + description;
 
-            form.setKeywords(tokenizer.getNouns(targetSentence)
+            form.setKeywords(Set.copyOf(tokenizer.getNouns(targetSentence))
                     .stream().collect(Collectors.joining(", ")));
 
             if(form.getKeywords().length() == 0) {

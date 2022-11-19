@@ -19,8 +19,8 @@
             </tr>
             </thead>
             <tbody>
-                <tr onmouseenter="changeColor(this)" th:each="order : ${orderList}"
-                    th:onclick="|location.href='@{/order/{id}(id=${order.id})}'|">
+                <tr onmouseenter="changeColor(this)" th:each="order : ${ordersList}"
+                    th:onclick="|location.href='@{/orders/{id}(id=${order.id})}'|">
                     <th th:text="${order.createdAt}" th:value="${order.createdAt}"/>
                     <th th:text="${order.title}" th:value="${order.id}"/>
                     <th th:text="${order.description}" th:value="${order.description}"/>
@@ -35,11 +35,11 @@
 <!--        <div><span>상품정포</span></div>-->
 <!--        <div><span>진행상태</span></div>-->
 <!--        <div><span>권한</span></div>-->
-<!--        <div th:each="order : ${partyList}">-->
+<!--        <div th:each="orders : ${partyList}">-->
 <!--            <div>-->
-<!--                <span th:text="${order.title}" th:value="${order.id}"/>-->
-<!--                <span th:text="${order.description}" th:value="${order.description}"/>-->
-<!--                <span th:text="${order.item.name}" th:value="${order.item.id}"/>-->
+<!--                <span th:text="${orders.title}" th:value="${orders.id}"/>-->
+<!--                <span th:text="${orders.description}" th:value="${orders.description}"/>-->
+<!--                <span th:text="${orders.item.name}" th:value="${orders.item.id}"/>-->
 <!--            </div>-->
 <!--        </div>-->
 

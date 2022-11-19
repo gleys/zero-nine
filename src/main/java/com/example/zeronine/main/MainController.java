@@ -1,12 +1,9 @@
 package com.example.zeronine.main;
 
 import com.example.zeronine.notification.NotificationRepository;
-import com.example.zeronine.order.Order;
+import com.example.zeronine.order.Orders;
 import com.example.zeronine.order.OrderRepository;
-import com.example.zeronine.user.CurrentUser;
-import com.example.zeronine.user.User;
-import com.example.zeronine.user.UserRepository;
-import com.example.zeronine.user.UserService;
+import com.example.zeronine.user.*;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -17,16 +14,12 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.Validator;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.mail.MessagingException;
-import javax.validation.constraints.Email;
 
 @Slf4j
 @Controller
@@ -40,8 +33,7 @@ public class MainController {
 
     @GetMapping("/")
     public String home(@CurrentUser User user, Model model,
-                       @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC)
-                       Pageable pageable) {
+                       @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         if (user != null) {
             model.addAttribute(user);
@@ -50,7 +42,7 @@ public class MainController {
         long count = notificationRepository.countByUserAndChecked(user, false);
         model.addAttribute("hasNotification", count > 0);
 
-        Page<Order> orderPage = orderRepository.findAll(pageable);
+        Page<Orders> orderPage = orderRepository.findAll(pageable);
         model.addAttribute("orderPage", orderPage);
 
         return "index";
@@ -102,11 +94,23 @@ public class MainController {
         return "redirect:/user/find-password";
     }
 
-
     @GetMapping("/login")
     public String loginForm() {
         return "login";
     }
 
+    @GetMapping("/search/orders")
+    public String searchKeyword(@PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+                                @RequestParam String keyword, Model model) {
+
+        Page<Orders> orderPage = orderRepository.findByKeyword(keyword, pageable);
+        model.addAttribute("orderPage", orderPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("sortProperty",
+                            pageable.getSort().toString().contains("createdAt") ? "createdAt" : "viewCount");
+
+        return "search";
+
+    }
 
 }

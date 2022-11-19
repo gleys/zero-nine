@@ -1,6 +1,6 @@
 package com.example.zeronine.participiant;
 
-import com.example.zeronine.order.Order;
+import com.example.zeronine.order.Orders;
 import com.example.zeronine.user.User;
 
 import javax.persistence.*;
@@ -20,7 +20,7 @@ public class Participant {
 
     @ManyToOne
     @JoinColumn(name = "orders_id")
-    private Order order;
+    private Orders orders;
 
     @ManyToOne
     @JoinColumn(name = "users_id")

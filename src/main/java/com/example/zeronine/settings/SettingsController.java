@@ -1,5 +1,6 @@
 package com.example.zeronine.settings;
 
+
 import com.example.zeronine.settings.form.*;
 import com.example.zeronine.settings.validator.PasswordFormValidator;
 import com.example.zeronine.settings.validator.UsernameFormValidator;
@@ -12,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.ResponseEntity;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,8 +22,12 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.persistence.Access;
+import com.example.zeronine.utils.ResponseForm.Result;
+
 import javax.validation.Valid;
+
+import static com.example.zeronine.utils.ResponseForm.success;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -171,25 +176,32 @@ public class SettingsController {
      */
     @ResponseBody
     @PostMapping("/keywords/add")
-    public ResponseEntity addKeyword(@CurrentUser User user, @RequestBody @Valid KeywordsForm form, BindingResult bindingResult) {
-
+    public Result<String> addKeyword(@CurrentUser User user, @RequestBody @Valid KeywordsForm form, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return ResponseEntity.badRequest().build();
+            String message = bindingResult.getFieldErrors()
+                    .stream().map(error -> error.getDefaultMessage())
+                    .collect(Collectors.joining("\n"));
+
+            return success(message);
         }
 
         userService.addKeyword(user, form.getKeyword());
-        return ResponseEntity.ok().build();
+        return success("OK");
     }
 
     @ResponseBody
     @PostMapping("/keywords/remove")
-    public ResponseEntity removeKeyword(@CurrentUser User user, @RequestBody @Validated KeywordsForm form, BindingResult bindingResult) {
+    public Result<String> removeKeyword(@CurrentUser User user, @RequestBody @Validated KeywordsForm form, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            ResponseEntity.badRequest().build();
+            String message = bindingResult.getFieldErrors()
+                    .stream().map(error -> error.getDefaultMessage())
+                    .collect(Collectors.joining("\n"));
+
+            return success(message);
         }
 
         userService.removeKeyword(user, form.getKeyword());
-        return ResponseEntity.ok().build();
+        return success("OK");
     }
 
 

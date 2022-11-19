@@ -31,12 +31,11 @@ public class SecurityConfig {
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations());
     }
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .mvcMatchers("/login").not().fullyAuthenticated()
-                .mvcMatchers("/", "/join", "/check-email-token", "/find-password").permitAll()
+                .mvcMatchers("/", "/join", "/check-email-token", "/find-password", "/search/orders").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/profile/*").permitAll()
                 .anyRequest().authenticated();
 
@@ -47,8 +46,8 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/");
 
         http.rememberMe()
-                .userDetailsService(userDetailsService)
-                .tokenRepository(jdbcTokenRepository());
+            .userDetailsService(userDetailsService)
+            .tokenRepository(jdbcTokenRepository());
 
         return http.build();
     }

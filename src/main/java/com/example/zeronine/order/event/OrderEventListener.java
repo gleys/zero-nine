@@ -3,7 +3,7 @@ package com.example.zeronine.order.event;
 import com.example.zeronine.config.Tokenizer;
 import com.example.zeronine.notification.Notification;
 import com.example.zeronine.notification.NotificationRepository;
-import com.example.zeronine.order.Order;
+import com.example.zeronine.order.Orders;
 
 import com.example.zeronine.settings.Keyword;
 import com.example.zeronine.user.User;
@@ -33,10 +33,10 @@ public class OrderEventListener {
 
     @EventListener
     public void handleOrderCreateEvent(OrderCreateEvent orderCreatedEvent) {
-        Order order = orderCreatedEvent.getOrder();
+        Orders orders = orderCreatedEvent.getOrders();
 
-        Long orderId = order.getId();
-        String title = order.getTitle();
+        Long orderId = orders.getId();
+        String title = orders.getTitle();
         List<Keyword> keywords = orderCreatedEvent.getKeywords();
 
         //키워드 타겟 유저 목록 조회
@@ -48,13 +48,13 @@ public class OrderEventListener {
 
     @EventListener
     public void handleOrderUpdateEvent(OrderUpdateEvent orderUpdateEvent) {
-        Order order = orderUpdateEvent.getOrder();
-        Long orderId = order.getId();
+        Orders orders = orderUpdateEvent.getOrders();
+        Long orderId = orders.getId();
         String message = orderUpdateEvent.getMessage();
-        String subTitle = order.getTitle().length() > 10 ? order.getTitle().substring(0, 10).trim() + "..." : order.getTitle();
-        String title = "[주문번호 order.getId()]" + subTitle;
+        String subTitle = orders.getTitle().length() > 10 ? orders.getTitle().substring(0, 10).trim() + "..." : orders.getTitle();
+        String title = "[주문번호 " + orders.getId()+ "]" + subTitle;
 
-        createUpdateNotification(order, orderId, message, title);
+        createUpdateNotification(orders, orderId, message, title);
     }
 
     //주문 생성시 키워드 알람
@@ -73,8 +73,8 @@ public class OrderEventListener {
     }
 
     //주문 정보 변경시 주문자들에게 알람
-    private void createUpdateNotification(Order order, Long orderId, String message, String title) {
-        List<Notification> notifications = order.getUsers().stream()
+    private void createUpdateNotification(Orders orders, Long orderId, String message, String title) {
+        List<Notification> notifications = orders.getUsers().stream()
                 .map(user -> {
                     Notification notification = Notification.create(user, title, message, orderId);
                     return notification;

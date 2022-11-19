@@ -15,16 +15,12 @@
             <h2>제로나인</h2>
         </div>
         <div class="row justify-content-center">
-            <div th:replace="fragments.html :: order-list (orderList=${orderPage.getContent()})"/>
+            <div th:replace="fragments.html :: orders-list (orderList=${orderPage.getContent()})"/>
         </div>
         <div th:replace="fragments.html :: footer"/>
     </div>
 
-    <script type="application/javascript">
-        (function () {
 
-        }())
-    </script>
-
+<script th:replace="fragments.html :: date-time"></script>
 </body>
 </html>

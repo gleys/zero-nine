@@ -45,7 +45,7 @@ public class Notification {
         notification.user = user;
         notification.title = title;
         notification.message = message;
-        notification.link = "/order/" + String.valueOf(orderId);
+        notification.link = "/orders/" + String.valueOf(orderId);
         notification.createdAt = LocalDateTime.now();
 
         return notification;

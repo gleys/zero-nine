@@ -6,16 +6,120 @@
     <head/>
 
 <body class="bg-light">
+
 <div th:replace="fragments.html :: main-nav"/>
 <div class="container">
-    <div th:replace="fragments.html :: order-form(mode='edit', action='/order/setting/'+${orderId})" />
+    <!--    <div th:replace="fragments.html :: orders-form(mode='new', action='/new-orders')" />-->
+    <div class="py-5 text-center">
+        <h2>주문서 수정</h2>
+    </div>
+
+    <!--인기글-->
+    <!--    <div class="row g-5">-->
+    <!--      <div class="col-md-5 col-lg-4 orders-md-last">-->
+    <!--        <h4 class="d-flex justify-content-between align-items-center mb-3">-->
+    <!--          <span class="text-primary">인기글</span>-->
+    <!--          <span class="badge bg-primary rounded-pill">3</span>-->
+    <!--        </h4>-->
+    <!--        <ul class="list-group mb-3">-->
+    <!--          <li class="list-group-item d-flex justify-content-between lh-sm">-->
+    <!--            <div>-->
+    <!--              <h6 class="my-0">상품1</h6>-->
+    <!--              <small class="text-muted">설명...</small>-->
+    <!--            </div>-->
+    <!--            <span class="text-muted">조회수 1000000000</span>-->
+    <!--          </li>-->
+    <!--          <li class="list-group-item d-flex justify-content-between lh-sm">-->
+    <!--            <div>-->
+    <!--              <h6 class="my-0">상품2</h6>-->
+    <!--              <small class="text-muted">설명...</small>-->
+    <!--            </div>-->
+    <!--            <span class="text-muted">조회수 3000000</span>-->
+    <!--          </li>-->
+    <!--          <li class="list-group-item d-flex justify-content-between lh-sm">-->
+    <!--            <div>-->
+    <!--              <h6 class="my-0">상품3</h6>-->
+    <!--              <small class="text-muted">설명...</small>-->
+    <!--            </div>-->
+    <!--            <span class="text-muted">조회수 2500000</span>-->
+    <!--          </li>-->
+    <!--        </ul>-->
+
+    <!--      </div>-->
+    <!--인기글-->
+
+    <div class="justify-content-center col-md-7 col-lg-8">
+        <form class="needs-validation"
+              th:action="@{'/orders/setting/' + ${orderId}}"
+              th:object="${orderForm}" method="post" novalidate>
+            <div class="row g-3">
+                <div class="col-sm-12">
+                    <input type="text" class="form-control" id="title" th:field="*{title}" placeholder="제목" aria-describedby="titleHelp" required>
+                    <div class="invalid-feedback">
+                        제목을 입력하세요.
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="input-group">
+                        <span class="input-group-text">#</span>
+                        <input class="form-control" placeholder="키워드: 쉼표(,)를 이용하여 복수 등록" type="text" th:field="*{keywords}">
+                        <small class="form-text text-danger" th:if="${#fields.hasErrors('keywords')}"
+                               th:errors="*{keywords}">keywordSentence Error</small>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="col-md-12">
+                        <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+                            <div class="col p-4 d-flex flex-column position-static">
+                                <div>
+                                    <select name="categoryId" class="form-select">
+                                        <option>분류</option>
+                                        <option th:each="category : *{categories}" th:text="${category.value}" th:value="${category.key}"/>
+                                    </select>
+                                    <input placeholder="가격" type="text" id="price" name="extra_vars2" th:field="*{price}" >
+                                    <input placeholder="참가 가능 인원 수" type="text" name="extra_vars2" th:field="*{numberOfLimit}" >
+                                </div>
+                                <input placeholder="상품명" type="text" id="name" name="extra_vars2" th:field="*{name}">
+
+                                <input class="form-control" placeholder="쇼핑몰 링크를 입력하세요" id="url" type="text" name="extra_vars2" th:field="*{url}">
+                                <!-- TODO: 파일 첨부 기능 추가-->
+                                <input type="text" class="form-control" id="itemImage" placeholder="상품 이미지" th:field="*{itemImage}">
+                                <!-- TODO: 파일 첨부 기능 추가-->
+
+                                <small class="form-text text-danger" th:if="${#fields.hasErrors('url')}" th:errors="*{url}">url Error</small>
+
+                                <textarea rows="15" id="description" th:field="*{description}" class="form-control"
+                                          aria-describedby="descriptionHelp" required></textarea>
+
+
+
+                            </div>
+                            <div class="col-auto d-none d-lg-block">
+                                <svg class="bd-placeholder-img" width="200" height="250" xmlns="http://www.w3.org/2000/svg"
+                                     role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice"
+                                     focusable="false"><title>Placeholder</title>
+                                    <rect width="100%" height="100%" fill="#55595c"></rect>
+                                    <text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="w-100 btn btn-primary btn-lg" type="submit">등록</button>
+            </div>
+        </form>
+    </div>
+</div>
+</main>
 </div>
 
 <div th:replace="fragments.html :: footer"/>
 </div>
 
 <script th:replace="fragments.html :: form-validation"></script>
-<script src="/node_modules/summernote/dist/summernote-bs4.js"></script>
 <script th:replace="fragments.html :: editor-script"></script>
 
 </body>
