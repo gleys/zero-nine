@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@Profile({"local", "test"})
+@Profile("test")
 public class ConsoleMailService implements EmailService {
 
     @Override

@@ -1,13 +1,15 @@
 package com.example.zeronine.order.event;
 
 import com.example.zeronine.config.Tokenizer;
+import com.example.zeronine.mail.EmailMessage;
+import com.example.zeronine.mail.EmailService;
 import com.example.zeronine.notification.Notification;
-import com.example.zeronine.notification.NotificationRepository;
+import com.example.zeronine.notification.respository.NotificationRepository;
 import com.example.zeronine.order.Orders;
 
 import com.example.zeronine.settings.Keyword;
 import com.example.zeronine.user.User;
-import com.example.zeronine.user.UserRepository;
+import com.example.zeronine.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,19 +18,17 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Async
 @Component
 @Transactional
 @RequiredArgsConstructor
 public class OrderEventListener {
 
-    private final Tokenizer tokenizer;
     private final UserRepository userRepository;
+    private final EmailService emailService;
     private final NotificationRepository notificationRepository;
 
     @EventListener
@@ -37,7 +37,7 @@ public class OrderEventListener {
 
         Long orderId = orders.getId();
         String title = orders.getTitle();
-        List<Keyword> keywords = orderCreatedEvent.getKeywords();
+        Set<Keyword> keywords = orderCreatedEvent.getKeywords();
 
         //키워드 타겟 유저 목록 조회
         Map<String, List<User>> notificationsTarget = userRepository.findNotificationsTargetUsers(keywords);
@@ -59,7 +59,7 @@ public class OrderEventListener {
 
     //주문 생성시 키워드 알람
     private void createNewNotification(Map<String, List<User>> targets, String message, Long orderId) {
-        List<Notification> result = targets.keySet().stream()
+        List<Notification> notifications = targets.keySet().stream()
                 .map(key -> {
                     List<User> users = targets.get(key);
                     String title = "[" + key + " 키워드 알림]";
@@ -69,7 +69,10 @@ public class OrderEventListener {
                     return collect;
                 }).flatMap(o -> o.stream()).collect(Collectors.toList());
 
-        notificationRepository.saveAll(result);
+        notificationRepository.saveAll(notifications);
+
+        sendToEmail(notifications, "제로나인 키워드 알림 : ");
+
     }
 
     //주문 정보 변경시 주문자들에게 알람
@@ -81,9 +84,21 @@ public class OrderEventListener {
                 }).collect(Collectors.toList());
 
         notificationRepository.saveAll(notifications);
+
+        sendToEmail(notifications, title);
     }
 
+    private void sendToEmail(List<Notification> notificationList, String messagePrefix) {
+        List<EmailMessage> messages = notificationList.stream()
+                .filter(notification -> notification.getUser().isOrderCreatedByWeb())
+                .map(notification -> EmailMessage.builder()
+                        .to(notification.getUser().getEmail())
+                        .subject(messagePrefix + notification.getTitle())
+                        .message(notification.getLink())
+                        .build())
+                .collect(Collectors.toList());
 
-
+        messages.forEach(message -> emailService.send(message));
+    }
 
 }

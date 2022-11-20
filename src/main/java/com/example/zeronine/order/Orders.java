@@ -4,15 +4,15 @@ import com.example.zeronine.comment.Comment;
 import com.example.zeronine.item.Item;
 import com.example.zeronine.settings.Keyword;
 import com.example.zeronine.user.User;
-import com.example.zeronine.user.UserAccount;
+import com.example.zeronine.user.security.UserAccount;
 import lombok.*;
 
 import javax.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+
 import java.util.HashSet;
-import java.util.List;
+
 import java.util.Set;
 
 import static javax.persistence.CascadeType.*;
@@ -23,8 +23,24 @@ import static lombok.AccessLevel.PROTECTED;
 @EqualsAndHashCode(of = "id")
 @Table(name = "orders")
 @NoArgsConstructor(access = PROTECTED)
-@NamedEntityGraph(name = "User.keywords", attributeNodes = @NamedAttributeNode("keywords"))
+@NamedEntityGraph(
+            name = "Order.view",
+            attributeNodes = {
+                @NamedAttributeNode("keywords"),
+                @NamedAttributeNode(value = "comments", subgraph = "comments")
+            },
+            subgraphs = {
+                    @NamedSubgraph(name = "comments", attributeNodes = @NamedAttributeNode("writer")),
+            }
+)
+@NamedEntityGraph(
+        name = "Order.mainView",
+        attributeNodes = {
+            @NamedAttributeNode("keywords")
+        }
+)
 @Entity
+@AllArgsConstructor
 public class Orders {
 
     @Id @GeneratedValue
@@ -49,7 +65,7 @@ public class Orders {
     private Item item;
 
     @OneToMany(orphanRemoval = true)
-    private List<Comment> comments = new ArrayList<>();
+    private Set<Comment> comments = new HashSet<>();
 
     private Long viewCount;
 
@@ -59,7 +75,7 @@ public class Orders {
             joinColumns = {@JoinColumn(name = "orders_id")},
             inverseJoinColumns = {@JoinColumn(name = "keywords_id")}
     )
-    private List<Keyword> keywords = new ArrayList<>();
+    private Set<Keyword> keywords = new HashSet<>();
 
     private boolean closed;
 
@@ -89,11 +105,11 @@ public class Orders {
         this.participantNum ++;
     }
 
-    public void addKeywords(List<Keyword> keywords) {
+    public void addKeywords(Set<Keyword> keywords) {
         this.keywords.addAll(keywords);
     }
 
-    public void setKeywords(List<Keyword> keywords) {
+    public void setKeywords(Set<Keyword> keywords) {
         this.keywords = keywords;
     }
 

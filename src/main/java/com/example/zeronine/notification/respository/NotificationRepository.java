@@ -1,5 +1,6 @@
-package com.example.zeronine.notification;
+package com.example.zeronine.notification.respository;
 
+import com.example.zeronine.notification.Notification;
 import com.example.zeronine.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;

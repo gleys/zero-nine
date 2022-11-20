@@ -1,6 +1,7 @@
 package com.example.zeronine.notification;
 
-import com.example.zeronine.user.CurrentUser;
+import com.example.zeronine.notification.respository.NotificationRepository;
+import com.example.zeronine.user.security.CurrentUser;
 import com.example.zeronine.user.User;
 import com.example.zeronine.utils.ResponseForm.Result;
 import static com.example.zeronine.utils.ResponseForm.success;

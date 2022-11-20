@@ -1,5 +1,6 @@
-package com.example.zeronine.user;
+package com.example.zeronine.user.validator;
 
+import com.example.zeronine.user.repository.UserRepository;
 import com.example.zeronine.user.form.JoinForm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

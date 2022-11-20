@@ -5,18 +5,17 @@ import com.example.zeronine.mail.EmailMessage;
 import com.example.zeronine.mail.EmailService;
 import com.example.zeronine.settings.Keyword;
 import com.example.zeronine.settings.UserKeyword;
-import com.example.zeronine.settings.UserKeywordRepository;
+import com.example.zeronine.settings.repository.UserKeywordRepository;
 import com.example.zeronine.settings.form.NotificationsForm;
-import com.example.zeronine.settings.form.PasswordForm;
 import com.example.zeronine.settings.form.ProfileEditForm;
 import com.example.zeronine.user.form.JoinForm;
+import com.example.zeronine.user.repository.KeywordRepository;
+import com.example.zeronine.user.repository.UserRepository;
+import com.example.zeronine.user.security.UserAccount;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -30,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.TemplateEngine;
 
 import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+
 import org.thymeleaf.context.Context;
 
 import java.util.List;

@@ -1,11 +1,6 @@
 package com.example.zeronine.settings.validator;
 
 import com.example.zeronine.settings.form.PasswordForm;
-import com.example.zeronine.user.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;

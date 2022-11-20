@@ -1,5 +1,6 @@
-package com.example.zeronine.comment;
+package com.example.zeronine.comment.repository;
 
+import com.example.zeronine.comment.Comment;
 import com.example.zeronine.order.Orders;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

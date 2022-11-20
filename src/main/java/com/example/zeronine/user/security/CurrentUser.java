@@ -1,4 +1,4 @@
-package com.example.zeronine.user;
+package com.example.zeronine.user.security;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 

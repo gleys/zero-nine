@@ -1,6 +1,7 @@
 package com.example.zeronine.item;
 
 import com.example.zeronine.item.form.ItemForm;
+import com.example.zeronine.item.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;

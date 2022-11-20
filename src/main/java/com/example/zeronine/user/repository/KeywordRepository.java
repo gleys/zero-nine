@@ -1,4 +1,4 @@
-package com.example.zeronine.user;
+package com.example.zeronine.user.repository;
 
 import com.example.zeronine.settings.Keyword;
 import org.springframework.data.jpa.repository.JpaRepository;

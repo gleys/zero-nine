@@ -47,6 +47,7 @@ public class SecurityConfig {
 
         http.rememberMe()
             .userDetailsService(userDetailsService)
+            .tokenValiditySeconds(3600)
             .tokenRepository(jdbcTokenRepository());
 
         return http.build();

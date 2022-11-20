@@ -1,18 +1,17 @@
-package com.example.zeronine.user;
+package com.example.zeronine.user.repository;
 
 import com.example.zeronine.settings.Keyword;
 import com.example.zeronine.settings.QKeyword;
 import com.example.zeronine.settings.QUserKeyword;
+import com.example.zeronine.user.QUser;
+import com.example.zeronine.user.User;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Repository
@@ -22,7 +21,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom{
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Map<String, List<User>> findNotificationsTargetUsers(List<Keyword> keywords) {
+    public Map<String, List<User>> findNotificationsTargetUsers(Set<Keyword> keywords) {
         QKeyword keyword = QKeyword.keyword;
         QUserKeyword userKeyword = QUserKeyword.userKeyword;
         QUser user = QUser.user;

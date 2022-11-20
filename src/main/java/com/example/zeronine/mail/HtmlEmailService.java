@@ -16,7 +16,7 @@ import java.io.InputStream;
 
 @Slf4j
 @Component
-@Profile("dev")
+@Profile("local")
 @RequiredArgsConstructor
 public class HtmlEmailService implements EmailService{
 
@@ -32,6 +32,7 @@ public class HtmlEmailService implements EmailService{
             mimeMessageHelper.setText(emailMessage.getMessage(), true);
 
             javaMailSender.send(mimeMessage);
+
             log.info("sent email : {}", emailMessage.getMessage());
         }
         catch (MessagingException e) {

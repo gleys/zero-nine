@@ -1,7 +1,7 @@
 package com.example.zeronine.comment;
 
 import com.example.zeronine.comment.form.CommentForm;
-import com.example.zeronine.user.CurrentUser;
+import com.example.zeronine.user.security.CurrentUser;
 import com.example.zeronine.user.User;
 import com.example.zeronine.utils.ResponseForm.Result;
 import lombok.RequiredArgsConstructor;

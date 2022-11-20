@@ -1,5 +1,7 @@
-package com.example.zeronine.order;
+package com.example.zeronine.order.respository;
 
+import com.example.zeronine.order.Orders;
+import com.example.zeronine.order.QOrders;
 import com.example.zeronine.settings.QKeyword;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.JPQLQuery;

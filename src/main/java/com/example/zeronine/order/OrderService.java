@@ -1,18 +1,19 @@
 package com.example.zeronine.order;
 
 import com.example.zeronine.category.Category;
-import com.example.zeronine.category.CategoryRepository;
+import com.example.zeronine.category.repository.CategoryRepository;
 import com.example.zeronine.item.Item;
 
 import com.example.zeronine.order.event.OrderCreateEvent;
 import com.example.zeronine.order.event.OrderUpdateEvent;
 import com.example.zeronine.order.form.OrderForm;
+import com.example.zeronine.order.respository.OrderRepository;
 import com.example.zeronine.settings.Keyword;
 
-import com.example.zeronine.user.KeywordRepository;
+import com.example.zeronine.user.repository.KeywordRepository;
 import com.example.zeronine.user.User;
 
-import com.example.zeronine.user.UserRepository;
+import com.example.zeronine.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,7 @@ public class OrderService {
         Long categoryId = form.getCategoryId();
         Category findCategory = categoryRepository.findById(categoryId).orElseThrow();
 
-        List<Keyword> keywords = saveKeywords(form);
+        Set<Keyword> keywords = saveKeywords(form);
 
         Item item = modelMapper.map(form, Item.class);
         item.setCategory(findCategory);
@@ -60,7 +61,7 @@ public class OrderService {
         return orders.getId();
     }
 
-    private List<Keyword> saveKeywords(OrderForm form) {
+    private Set<Keyword> saveKeywords(OrderForm form) {
         List<String> words = Arrays.stream(form.getKeywords().trim().replace(" ", "")
                 .split(",")).collect(Collectors.toList());
         List<Keyword> existKeywords = keywordRepository.findByNames(words);
@@ -74,7 +75,7 @@ public class OrderService {
 
         newKeywords.stream().forEach(keyword -> keywordMap.put(keyword.getName(), keyword));
 
-        return new ArrayList<>(keywordMap.values());
+        return new HashSet<>(keywordMap.values());
     }
 
     public boolean participate(User user, Long id) {
@@ -110,7 +111,7 @@ public class OrderService {
         Orders findOrders = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException());
 
         if (findOrders.getOwner().equals(user) || !isValid(findOrders, form)) {
-            List<Keyword> keywords = saveKeywords(form);
+            Set<Keyword> keywords = saveKeywords(form);
 
             modelMapper.map(form, findOrders);
             findOrders.setKeywords(keywords);

@@ -1,13 +1,11 @@
 package com.example.zeronine.settings.validator;
 
 import com.example.zeronine.settings.form.UsernameForm;
-import com.example.zeronine.user.UserRepository;
+import com.example.zeronine.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 
 @Component
 @RequiredArgsConstructor

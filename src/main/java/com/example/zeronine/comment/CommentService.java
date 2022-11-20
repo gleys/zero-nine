@@ -1,8 +1,9 @@
 package com.example.zeronine.comment;
 
 import com.example.zeronine.comment.form.CommentForm;
+import com.example.zeronine.comment.repository.CommentRepository;
 import com.example.zeronine.order.Orders;
-import com.example.zeronine.order.OrderRepository;
+import com.example.zeronine.order.respository.OrderRepository;
 import com.example.zeronine.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

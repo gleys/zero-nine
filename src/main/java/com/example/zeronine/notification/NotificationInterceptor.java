@@ -1,7 +1,8 @@
 package com.example.zeronine.notification;
 
+import com.example.zeronine.notification.respository.NotificationRepository;
 import com.example.zeronine.user.User;
-import com.example.zeronine.user.UserAccount;
+import com.example.zeronine.user.security.UserAccount;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +23,7 @@ public class NotificationInterceptor  implements HandlerInterceptor {
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         if (modelAndView != null && !isRedirectView(modelAndView)
                 && authentication != null && authentication.getPrincipal() instanceof UserAccount) {
 

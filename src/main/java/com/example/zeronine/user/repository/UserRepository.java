@@ -1,7 +1,7 @@
-package com.example.zeronine.user;
+package com.example.zeronine.user.repository;
 
+import com.example.zeronine.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;

@@ -1,15 +1,13 @@
 package com.example.zeronine.settings;
 
-import com.example.zeronine.mail.EmailMessage;
-import com.example.zeronine.mail.EmailService;
 import com.example.zeronine.settings.form.KeywordsForm;
-import com.example.zeronine.user.KeywordRepository;
+import com.example.zeronine.settings.repository.UserKeywordRepository;
+import com.example.zeronine.user.repository.KeywordRepository;
 import com.example.zeronine.user.User;
-import com.example.zeronine.user.UserRepository;
+import com.example.zeronine.user.repository.UserRepository;
 import com.example.zeronine.user.UserService;
 import com.example.zeronine.user.form.JoinForm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,8 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.TestExecutionEvent;
@@ -31,13 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.mail.MessagingException;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -55,7 +48,8 @@ class SettingsControllerTest {
     @Autowired PasswordEncoder passwordEncoder;
     @Autowired ObjectMapper objectMapper;
     @Autowired KeywordRepository keywordRepository;
-    @Autowired UserKeywordRepository userKeywordRepository;
+    @Autowired
+    UserKeywordRepository userKeywordRepository;
 
     @BeforeEach
     void beforeEach() throws MessagingException {
