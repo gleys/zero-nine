@@ -1,7 +1,7 @@
 # zero-nine
 # zero-nine
 테이블 구조
-![image](https://user-images.githubusercontent.com/26499296/202913573-1cc0f9bf-6be2-46bb-8cf0-930d5f28e2b9.png)
+![image](https://user-images.githubusercontent.com/26499296/202913639-9f5ca37c-798d-477c-b6f6-af768e80dfc2.png)
 
 알림 전송 기능
 ![image](https://user-images.githubusercontent.com/26499296/202913583-858a4317-43bd-4e51-a3fa-bb7aa45e1702.png)
